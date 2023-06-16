@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-
+import router from '@/router/router.js'
 const $axios = axios.create({
     timeout: 1200000
 })
@@ -44,13 +44,12 @@ $axios.interceptors.request.use((config) => {
 })
 $axios.interceptors.response.use(
     (res) => {
-        if(res.data.code !== 0) {
-            ElMessage.error(res.data.msg)
-        }
         return res.data
-
     },
     (error) => {
+        if(error.response.status === 403) {
+            router.push('/login')
+        }
         console.log(error)
     }
 )

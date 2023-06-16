@@ -8,10 +8,12 @@
    <div style="display: inline-block; position: absolute; top: 0; margin-left: 3px">{{item.name}}</div>
   </div>
 </template>
-<script setup lang="ts">
+<script setup lang="js">
 import {onBeforeMount, onMounted, reactive, ref} from "vue";
 import {Plus} from "@element-plus/icons-vue";
 import {useRoute, useRouter} from "vue-router";
+import {post} from "@/utils/request.js";
+import ApiPath from "@/common/ApiPath.js";
 
 const router = useRouter()
 const route = useRoute()
@@ -20,10 +22,24 @@ const setActive = (item, val) => {
   active.value = val
   router.push(`/console/chats/${item.id}`)
 }
-const list = reactive([
-  {name: '杨辉', id: 1},
-  {name: '杨晨', id: 2},
-])
+const list = reactive([])
+
+onMounted(async () => {
+  await getUserStatus()
+  getUserMsg()
+})
+const currentUser = ref(null)
+const getUserStatus = async () => {
+  await post(ApiPath.USER_LOGIN_STATUS, {}).then(response => {
+    currentUser.value = response.user_info
+  })
+}
+const getUserMsg = () => {
+  post(ApiPath.USER_GET_MSGS, {
+    username: currentUser.value.username,
+    sequence: 0
+  })
+}
 </script>
 <style lang="scss" scoped>
 .friend__item{

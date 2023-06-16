@@ -62,10 +62,10 @@ const sendMessage = () => {
   padding-left: 20px;
   line-height: 60px;
   height: 60px;
-  background-color: #eae5e5;
+  background-color: rgb(245,245,245);
 }
 .chat-message{
-  height: calc(100vh - 300px)
+  height: calc(800px - 300px)
 }
 .chat-tools{
   display: flex;

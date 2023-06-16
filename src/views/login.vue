@@ -1,45 +1,51 @@
 <template>
   <div class="login">
-    <img decoding="async" loading="lazy" src="@/assets/img/login.png" alt="图片文本描述" class="login-img">
+    <transition enter-active-class="animate__animated animate__fadeIn" >
+        <el-form v-if="show" :model="loginForm" ref="ruleFormRef" :rules="rules" class="login-form">
+          <div class="login-form__title">OTZ <div class="login-form__title-text">tfsb，tfsb，tfsb，重要的事情说三遍</div></div>
+          <el-form-item prop="email">
+            <el-input v-model="loginForm.email" placeholder="邮箱" style="width: 300px"></el-input>
+          </el-form-item>
+          <el-form-item prop="code">
+            <el-input v-model="loginForm.code" type="password" placeholder="验证码" style="width: 300px">
+              <template v-slot:suffix>
+                <el-button :disabled="buttonDisabled" @click="sendVerifyCode(ruleFormRef)" v-if="timer === 0" class="btn-send" style="margin-right: -10px">发送验证码</el-button>
+                <el-button disabled v-else class="btn-send" style="margin-right: -10px">剩余{{timer}}秒</el-button>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item >
 
-    <el-form :model="loginForm" ref="ruleFormRef" :rules="rules" class="login-form">
-      <div class="login-form__title">OTZ <div class="login-form__title-text">tfsb，tfsb，tfsb，重要的事情说三遍</div></div>
-      <el-form-item prop="email">
-        <el-input v-model="loginForm.email" placeholder="邮箱" style="width: 300px"></el-input>
-      </el-form-item>
-      <el-form-item prop="code">
-        <el-input v-model="loginForm.code" type="password" placeholder="验证码" style="width: 300px">
-          <template v-slot:suffix>
-            <el-button :disabled="buttonDisabled" @click="sendVerifyCode(ruleFormRef)" v-if="timer === 0" class="btn-send" style="margin-right: -10px">发送验证码</el-button>
-            <el-button disabled v-else class="btn-send" style="margin-right: -10px">剩余{{timer}}秒</el-button>
-          </template>
-        </el-input>
-      </el-form-item>
-      <el-form-item >
-
-      </el-form-item>
-      <div style="text-align: center">
-        <el-button @click="login(ruleFormRef)" class="btn-primary" style="width: 300px;height: 40px;font-size: 16px">登 录</el-button>
-      </div>
-      <div style="text-align: center">
-        <el-button type="text">注册用户</el-button>
-      </div>
-    </el-form>
+          </el-form-item>
+          <div style="text-align: center">
+            <el-button @click="login(ruleFormRef)" class="btn-primary" style="width: 300px;height: 40px;font-size: 16px">登 录</el-button>
+          </div>
+          <div style="text-align: center">
+            <el-button type="text">注册用户</el-button>
+          </div>
+        </el-form>
+    </transition>
 
   </div>
 
 </template>
 <script setup lang="ts">
-import {reactive, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import { useRouter } from 'vue-router'
 import { post } from "../utils/request.js";
 import ApiPath from "../common/ApiPath.js";
 import { FormInstance } from "element-plus";
 import { FormRules } from "element-plus/lib/components";
 import { getCurrentInstance } from 'vue'
-
+import 'animate.css'
 const { proxy } = getCurrentInstance()
 
+const show = ref(false)
+onMounted(() => {
+  setTimeout(() => {
+  show.value = true
+  }, 500)
+})
 const loginForm = reactive({
   email: '',
   code: ''
@@ -70,6 +76,7 @@ const login = async (formEl: FormInstance | undefined) => {
         verify_code: loginForm.code
       }).then(async (response) => {
         if (response.code === 0) {
+          show.value = false
           proxy.$notify({
             title: '登陆成功',
             message: `欢迎您，${response?.user_info?.nickname}`,
@@ -79,6 +86,7 @@ const login = async (formEl: FormInstance | undefined) => {
           await router.push({
             name: 'console'
           })
+
         }
       })
     }
@@ -120,17 +128,20 @@ const sendVerifyCode = async (formEl: FormInstance | undefined) => {
 .login{
   padding: 0;
   margin: 0;
-  .login-img{
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-  }
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 600px;
+  width: 400px;
+  transform: translate(-50% ,-50%);
+  background: rgba(255,255,255, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   &-form{
-    position: absolute;
-    top: 30%;
-    right: 10%;
     &__title{
-      font-size: 26px;margin-bottom: 30px;
+      text-align: center;
+      font-size: 26px;margin-bottom: 50px;
       &-text{
         display: inline-block;
         font-size: 14px
@@ -143,6 +154,9 @@ const sendVerifyCode = async (formEl: FormInstance | undefined) => {
       height: 34px;
       line-height: 34px;
       background-color: unset;
+    }
+    :deep .el-form-item{
+      margin-bottom: 30px;
     }
     :deep .el-input__inner {
       color:#fff;

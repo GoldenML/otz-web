@@ -36,6 +36,7 @@ import FriendList from "./FriendList.vue";
 }
 .content {
   flex: 1;
+  background: #ffffff;
   //padding: 20px;
 }
 </style>

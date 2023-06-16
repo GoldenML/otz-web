@@ -10,7 +10,7 @@ const routes = [
         path: '/login',
         component: defineAsyncComponent(() => import('../views/login.vue')),
         meta: {
-            title: '登录页'
+            title: '登录'
         }
     },
     {
@@ -18,7 +18,7 @@ const routes = [
         path: '/console',
         component: defineAsyncComponent(() => import('../views/console/index.vue')),
         meta: {
-            title: '首页'
+            title: '控制台'
         },
         redirect: '/console/chats',
         children: [
@@ -27,7 +27,7 @@ const routes = [
                 path: '/console/chats',
                 component: defineAsyncComponent(() => import('../views/console/chats/index.vue')),
                 meta: {
-                    title: '聊天'
+                    title: '消息'
                 },
                 children: [
                     {
@@ -43,6 +43,13 @@ const routes = [
                 meta: {
                     title: '通讯录'
                 },
+                children: [
+                    {
+                        name: 'friendInfo',
+                        path: '/console/contacts/:id',
+                        component: defineAsyncComponent(() => import('../views/console/contacts/FriendInfo/index.vue')),
+                    }
+                ]
             },
             {
                 name: 'settings',
@@ -63,7 +70,7 @@ const router = createRouter({
 router.beforeEach((to, from, next)=>{
     console.log(to, from, next)
     if (to.meta.title) {
-        document.title = `${to.meta.title}`;
+        document.title = to.meta.title;
     }
     next()
 })

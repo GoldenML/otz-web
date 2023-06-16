@@ -1,3 +1,27 @@
+$basic-green: rgb(7, 193, 96);
+$basic-green-hover: rgb(56, 205, 127);
+
+.btn-conditional {
+  width: 110px;
+  height: 30px;
+  background: $basic-green !important;
+  border-radius: 3px;
+  color: #ffffff !important;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 0;
+  &:hover,
+  &:visited,
+  &:active,
+  &:focus {
+    background: $basic-green-hover !important;
+
+  }
+  &:disabled {
+    background: #edeff3 !important;
+    color: #999999 !important;
+  }
+}
 .btn-primary {
   width: 146px;
   height: 44px;
@@ -67,6 +91,7 @@
 
 }
 .btn-words {
+  cursor: pointer;
   color: #2385f1;
   padding: 0;
   background: transparent !important;
@@ -89,4 +114,18 @@
   width: 80px;
   font-size: 12px;
 }
+
+.btn-modal-ok {
+  @extend .btn-primary;
+  width: 84px;
+  height: 30px;
+}
+
+.btn-modal-cancel {
+  @extend .btn-assisted;
+  width: 84px;
+  height: 30px;
+  color: #000000
+}
+
 
