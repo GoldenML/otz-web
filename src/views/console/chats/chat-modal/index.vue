@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="chat-top">
-      杨晨
+      {{props.data.nickname}}
     </div>
 
     <div class="chat-message"></div>
@@ -44,17 +44,41 @@
     </div>
   </div>
 </template>
-<script setup lang="ts">
-import {defineAsyncComponent, onMounted, reactive, ref} from "vue";
+<script setup lang="js">
+import {defineAsyncComponent, onMounted, reactive, ref, getCurrentInstance} from "vue";
 import emojiList from './emojis.js'
-
+import {post} from "@/utils/request.js";
+import ApiPath from "@/common/ApiPath.js";
+const props = defineProps({
+  data: Object
+})
+const { proxy } = getCurrentInstance()
 const message = ref('')
 const emojis = reactive(emojiList)
 const addEmoji = (emoji) => {
   message.value += emoji
 }
 const sendMessage = () => {
-  message.value = ''
+  post(ApiPath.USER_SEND_MSG, {
+    msg: {
+      msg_type: 1,
+      from_type: 1,
+      to_type: 1,
+      to_username: props.data.username,
+      text_msg: {
+        text: message.value
+      },
+    }
+  }).then(res => {
+    if(res.code === 0) {
+      message.value = ''
+    } else {
+      proxy.$message({
+        type: "error",
+        message: res.msg
+      })
+    }
+  })
 }
 </script>
 <style lang="scss" scoped>

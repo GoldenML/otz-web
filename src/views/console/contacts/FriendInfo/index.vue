@@ -19,7 +19,7 @@
 <!--    </div>-->
 <!--    <el-divider></el-divider>-->
     <div class="content3">
-      <el-button class="btn-conditional">发消息</el-button>
+      <el-button @click="handleSendMsg" class="btn-conditional">发消息</el-button>
     </div>
   </div>
 
@@ -27,13 +27,22 @@
 <script setup lang="js">
 import {post} from "@/utils/request.js";
 import ApiPath from "@/common/ApiPath.js";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {UserFilled} from "@element-plus/icons-vue";
-const route = useRoute()
 
+const route = useRoute()
+const router = useRouter()
 const props = defineProps({
   data: Object
 })
+const handleSendMsg = () => {
+  router.push({
+    path: '/console/chats',
+    state: {
+      friendInfo: props.data
+    },
+  })
+}
 console.log(props.data)
 </script>
 <style lang="scss" scoped>

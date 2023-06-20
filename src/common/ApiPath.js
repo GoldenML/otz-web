@@ -10,7 +10,8 @@ const otz = {
     USER_GET_INFO: getApi('get_user_info'),
     USER_GET_FRIEND: getApi('get_user_friends'),
     USER_ADD_FRIEND: getApi('add_friend'),
-    USER_GET_MSGS: getApi('get_user_msgs')
+    USER_GET_MSGS: getApi('get_user_msgs'),
+    USER_SEND_MSG: getApi('send_msg')
 }
 
 export default otz

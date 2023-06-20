@@ -3,41 +3,52 @@
     <el-input placeholder="请输入关键字" style="width: 200px;margin-right: 10px;"></el-input>
     <el-icon style="vertical-align: middle"><Plus /></el-icon>
   </div>
-  <div class="friend__item" :class="{'friend__item--active': active === index}" v-for="(item, index) in list" :key="index" @click="setActive(item, index)">
-    <img src="@/assets/img/login.png" :width="40" :height="40"  style="margin: 5px"  alt=""/>
-   <div style="display: inline-block; position: absolute; top: 0; margin-left: 3px">{{item.name}}</div>
+  <div class="friend__item" :class="{'friend__item--active': active === index}" v-for="(item, index) in chatList" :key="index" @click="setActive(item, index)">
+    <img :src="item.avatar" :width="40" :height="40"  style="margin: 5px"  alt=""/>
+   <div style="display: inline-block; position: absolute; top: 0; margin-left: 3px">{{item.nickname}}</div>
   </div>
 </template>
 <script setup lang="js">
-import {onBeforeMount, onMounted, reactive, ref} from "vue";
+import {getCurrentInstance, inject, onBeforeMount, onMounted, reactive, ref} from "vue";
 import {Plus} from "@element-plus/icons-vue";
 import {useRoute, useRouter} from "vue-router";
 import {post} from "@/utils/request.js";
 import ApiPath from "@/common/ApiPath.js";
 
+const { proxy } = getCurrentInstance()
 const router = useRouter()
 const route = useRoute()
 const active = route.params.id ? ref(route.params.id - 1) : ref(-1)
+defineEmits(['changeFriend'])
+
 const setActive = (item, val) => {
   active.value = val
-  router.push(`/console/chats/${item.id}`)
+  proxy.$emit('changeFriend', chatList[val])
+  // router.push(`/console/chats/${item.username}`)
 }
-const list = reactive([])
+const globalFunc = inject('globalFunc')
+const friendInfos = globalFunc.getFriendInfos()
 
+const chatList = reactive([])
 onMounted(async () => {
-  await getUserStatus()
   getUserMsg()
 })
-const currentUser = ref(null)
-const getUserStatus = async () => {
-  await post(ApiPath.USER_LOGIN_STATUS, {}).then(response => {
-    currentUser.value = response.user_info
-  })
-}
 const getUserMsg = () => {
   post(ApiPath.USER_GET_MSGS, {
-    username: currentUser.value.username,
     sequence: 0
+  }).then(res => {
+    if(res.code === 0) {
+      res.msgs?.forEach(e => {
+        const idx = friendInfos.findIndex(user => user.username === e.from_username || user.username === e.to_username)
+        console.log(idx)
+        chatList.push({
+          nickname: friendInfos[idx].nickname,
+          avatar: friendInfos[idx].avatar,
+          msg: e.text_msg.text,
+          username: friendInfos[idx].username
+        })
+      })
+    }
   })
 }
 </script>

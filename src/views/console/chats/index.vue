@@ -1,16 +1,31 @@
 <template>
   <div class="chats">
     <div class="sidebar">
-      <FriendList />
+      <FriendList @changeFriend="handleChangeFriend"/>
     </div>
     <div class="content">
-      <router-view></router-view>
+<!--      <router-view></router-view>-->
+      <ChatModal v-if="friendInfo" :data="friendInfo"></ChatModal>
     </div>
   </div>
 
 </template>
-<script setup lang="ts">
+<script setup lang="js">
 import FriendList from "./FriendList.vue";
+import {onMounted, ref} from "vue";
+import ChatModal from './chat-modal/index.vue'
+import {useRoute, useRouter} from "vue-router";
+const friendInfo = ref(null)
+const route = useRoute()
+onMounted(() => {
+  // console.log(history.state.params)
+  if(route.params.friendInfo) {
+    friendInfo.value = route.params.friendInfo
+  }
+})
+const handleChangeFriend = (info) => {
+  friendInfo.value = info
+}
 </script>
 <style lang="scss" scoped>
 .card{
