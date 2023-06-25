@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { defineAsyncComponent } from "vue";
+import {post} from "@/utils/request.js";
+import ApiPath from "@/common/ApiPath.js";
 
 const routes = [
     {
@@ -73,5 +75,6 @@ router.beforeEach((to, from, next)=>{
         document.title = to.meta.title;
     }
     next()
+
 })
 export default router

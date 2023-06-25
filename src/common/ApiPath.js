@@ -11,7 +11,11 @@ const otz = {
     USER_GET_FRIEND: getApi('get_user_friends'),
     USER_ADD_FRIEND: getApi('add_friend'),
     USER_GET_MSGS: getApi('get_user_msgs'),
-    USER_SEND_MSG: getApi('send_msg')
+    USER_SEND_MSG: getApi('send_msg'),
+    USER_ADD_HISTORY: getApi('add_friend_history'),
+    USER_ADD_HANDLE: getApi('handle_add_friend'),
+    USER_DELETE_FRIEND: getApi('delete_friend'),
+    USER_LOGOUT: getApi('loginout')
 }
 
 export default otz

@@ -127,5 +127,11 @@ $basic-green-hover: rgb(56, 205, 127);
   height: 30px;
   color: #000000
 }
+.btn-accept{
+  @extend .btn-conditional;
+  height: 25px;
+  width: 60px;
+  font-size: 12px;
+}
 
 

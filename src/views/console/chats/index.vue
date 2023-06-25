@@ -5,7 +5,7 @@
     </div>
     <div class="content">
 <!--      <router-view></router-view>-->
-      <ChatModal v-if="friendInfo" :data="friendInfo"></ChatModal>
+      <ChatModal @updateMessage="updateMessage" v-if="store.operateUsername" :username="store.operateUsername"></ChatModal>
     </div>
   </div>
 
@@ -15,16 +15,12 @@ import FriendList from "./FriendList.vue";
 import {onMounted, ref} from "vue";
 import ChatModal from './chat-modal/index.vue'
 import {useRoute, useRouter} from "vue-router";
-const friendInfo = ref(null)
+import {userStore} from "@/store/userStore.js";
+const username = ref(null)
 const route = useRoute()
-onMounted(() => {
-  // console.log(history.state.params)
-  if(route.params.friendInfo) {
-    friendInfo.value = route.params.friendInfo
-  }
-})
-const handleChangeFriend = (info) => {
-  friendInfo.value = info
+const store = userStore()
+const updateMessage = () => {
+
 }
 </script>
 <style lang="scss" scoped>
@@ -51,7 +47,7 @@ const handleChangeFriend = (info) => {
 }
 .content {
   flex: 1;
-  background: #ffffff;
+  background: rgb(245, 245, 245);
   //padding: 20px;
 }
 </style>

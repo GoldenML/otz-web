@@ -1,24 +1,34 @@
 <template>
   <div class="contacts">
     <div class="sidebar">
-      <FriendList @changeFriend="handleChangeFriend"/>
+      <FriendList @changeFriend="handleChangeFriend" @handleShowNewFriend="handleShowNewFriend"/>
     </div>
     <div class="content">
 <!--      <router-view></router-view>-->
       <FriendInfo v-if="friendInfo" :data="friendInfo"></FriendInfo>
+      <NewFriend v-if="showNewFriend"></NewFriend>
     </div>
   </div>
 
 </template>
-<script setup lang="ts">
+<script setup lang="js">
 import FriendList from "./FriendList.vue";
 import FriendInfo from './FriendInfo/index.vue'
+import NewFriend from './NewFriend/index.vue'
 import {reactive, ref} from "vue";
+import {userStore} from "@/store/userStore.js";
 
 const friendInfo = ref(null)
-
-const handleChangeFriend = (info) => {
-  friendInfo.value = info
+const showNewFriend = ref(false)
+const store = userStore()
+const handleChangeFriend = (val) => {
+  if (val === 'add_friend'){
+    friendInfo.value = null
+    showNewFriend.value = true
+  } else {
+    friendInfo.value = store.friendInfos[val]
+    showNewFriend.value = false
+  }
 }
 </script>
 <style lang="scss" scoped>
@@ -46,7 +56,7 @@ const handleChangeFriend = (info) => {
 }
 .content {
   flex: 1;
-  padding: 20px;
+  //padding: 20px;
   background-color: rgb(245, 245, 245);
 }
 </style>

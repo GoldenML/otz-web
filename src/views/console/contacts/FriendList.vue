@@ -47,12 +47,12 @@
 
   </div>
   <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">新的朋友</div>
-  <div class="friend__item">
-    <img  :width="30" :height="30"  style="margin: 10px"  alt="" />
+  <div class="friend__item" :class="{'friend__item--active': active === 'add_friend'}" @click="setActive('add_friend')">
+    <img  :width="30" :height="30"  style="margin: 10px; background-color: rgb(250, 157, 59)"  alt="" src="@/assets/img/add-friend.png" />
     <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">新的朋友</div>
   </div>
   <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部朋友</div>
-  <div class="friend__item" :class="{'friend__item--active': active === index}" v-for="(item, index) in list" :key="index" @click="setActive(index)">
+  <div class="friend__item" :class="{'friend__item--active': active === index}" v-for="(item, index) in store.friendInfos" :key="index" @click="setActive(index)">
     <img  :width="30" :height="30"  style="margin: 10px"  alt="" :src="item.avatar" />
     <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{item.nickname}}</div>
   </div>
@@ -64,36 +64,23 @@ import { post } from "@/utils/request.js";
 import ApiPath from "@/common/ApiPath.js";
 import { getCurrentInstance } from 'vue'
 import {useRouter} from "vue-router";
+import {userStore} from "@/store/userStore.js";
 const router = useRouter()
 const { proxy } = getCurrentInstance()
 
 const searchText = ref('')
 const keyword = ref('')
 
-defineEmits(['changeFriend'])
+defineEmits(['changeFriend', 'handleShowNewFriend'])
 
 // 当前选中的用户
 const active = ref(-1)
 const setActive = (val) => {
   active.value = val
-  proxy.$emit('changeFriend', list[val])
+  proxy.$emit('changeFriend', val)
   // router.push(`/console/contacts/${list[val].username}`)
 }
-const currentUser = ref({})
-// 用户列表
-const list = reactive([])
-onMounted(() => {
-  post(ApiPath.USER_LOGIN_STATUS, {}).then(response => {
-    currentUser.value = response.user_info
-  })
-  post(ApiPath.USER_GET_FRIEND, {}).then(response => {
-    if(response.code === 0) {
-      response.friends.forEach(e => {
-        list.push(e)
-      })
-    }
-  })
-})
+const store = userStore()
 
 /*************************************/
 onMounted(() => {
@@ -132,7 +119,7 @@ const searchUser = () => {
 }
 const addUser = () => {
   post(ApiPath.USER_ADD_FRIEND, {
-    username: currentUser.value.username,
+    username: store.userInfo.username,
     friend_username: userInfo.value.username
   })
 }

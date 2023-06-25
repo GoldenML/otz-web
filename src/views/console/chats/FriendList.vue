@@ -3,60 +3,46 @@
     <el-input placeholder="请输入关键字" style="width: 200px;margin-right: 10px;"></el-input>
     <el-icon style="vertical-align: middle"><Plus /></el-icon>
   </div>
-  <div class="friend__item" :class="{'friend__item--active': active === index}" v-for="(item, index) in chatList" :key="index" @click="setActive(item, index)">
-    <img :src="item.avatar" :width="40" :height="40"  style="margin: 5px"  alt=""/>
-   <div style="display: inline-block; position: absolute; top: 0; margin-left: 3px">{{item.nickname}}</div>
+  <div class="friend__item" :class="{'friend__item--active': store.operateUsername === key}" v-for="(item, key) in store.msgs" :key="key" @click="setActive(key)">
+    <div>
+      <img :src="item.avatar" :width="40" :height="40"  style="margin: 12px"  alt=""/>
+    </div>
+   <div style="display: inline-block; margin-left: 3px;">
+     <div style="line-height: 20px;margin-top: 10px;">{{ item.nickname }}</div>
+     <div style="line-height: 20px;margin-top: 5px;color: rgb(165, 165, 165); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;width: 150px">
+       <template v-if="key !== store.operateUsername && store.messages[key]">
+         <span style="color: rgb(221, 43, 43)" >[草稿]</span>{{store.messages[key] }}
+       </template>
+       <template v-else>{{ item.lastMsg }}</template>
+     </div>
+   </div>
   </div>
 </template>
 <script setup lang="js">
-import {getCurrentInstance, inject, onBeforeMount, onMounted, reactive, ref} from "vue";
+import {getCurrentInstance, inject, onBeforeMount, onMounted, reactive, ref, watchEffect} from "vue";
 import {Plus} from "@element-plus/icons-vue";
 import {useRoute, useRouter} from "vue-router";
 import {post} from "@/utils/request.js";
 import ApiPath from "@/common/ApiPath.js";
+import {userStore} from "@/store/userStore.js";
 
 const { proxy } = getCurrentInstance()
 const router = useRouter()
 const route = useRoute()
 const active = route.params.id ? ref(route.params.id - 1) : ref(-1)
 defineEmits(['changeFriend'])
-
-const setActive = (item, val) => {
-  active.value = val
-  proxy.$emit('changeFriend', chatList[val])
-  // router.push(`/console/chats/${item.username}`)
+const store = userStore()
+const setActive = (username) => {
+  store.updateOperateUsername(username)
 }
-const globalFunc = inject('globalFunc')
-const friendInfos = globalFunc.getFriendInfos()
 
-const chatList = reactive([])
-onMounted(async () => {
-  getUserMsg()
-})
-const getUserMsg = () => {
-  post(ApiPath.USER_GET_MSGS, {
-    sequence: 0
-  }).then(res => {
-    if(res.code === 0) {
-      res.msgs?.forEach(e => {
-        const idx = friendInfos.findIndex(user => user.username === e.from_username || user.username === e.to_username)
-        console.log(idx)
-        chatList.push({
-          nickname: friendInfos[idx].nickname,
-          avatar: friendInfos[idx].avatar,
-          msg: e.text_msg.text,
-          username: friendInfos[idx].username
-        })
-      })
-    }
-  })
-}
 </script>
 <style lang="scss" scoped>
 .friend__item{
+  display: flex;
   background-color: #eceaea;
-  line-height: 50px;
-  height: 50px;
+  line-height: 65px;
+  height: 65px;
   padding: 0;
   cursor: pointer;
   font-size: 14px;

@@ -2,7 +2,7 @@
   <div class="login">
     <transition enter-active-class="animate__animated animate__fadeIn" >
         <el-form v-if="show" :model="loginForm" ref="ruleFormRef" :rules="rules" class="login-form">
-          <div class="login-form__title">OTZ <div class="login-form__title-text">tfsb，tfsb，tfsb，重要的事情说三遍</div></div>
+          <div class="login-form__title">OTZ <transition enter-from-class="animate__animated animate__fadeIn"><div class="login-form__title-text">tfsb，tfsb，tfsb，重要的事情说三遍</div></transition></div>
           <el-form-item prop="email">
             <el-input v-model="loginForm.email" placeholder="邮箱" style="width: 300px"></el-input>
           </el-form-item>
@@ -143,8 +143,9 @@ const sendVerifyCode = async (formEl: FormInstance | undefined) => {
       text-align: center;
       font-size: 26px;margin-bottom: 50px;
       &-text{
-        display: inline-block;
-        font-size: 14px
+        width: 100px;
+        font-size: 14px;
+        display: none;
       }
     }
     .el-input input {
