@@ -7,11 +7,11 @@ import router from './router/router.js'
 import '@/assets/css/index.scss'
 import VueCookies from 'vue-cookies'
 import { createPinia } from 'pinia'
-
-
+import socket from '@/utils/connectSocket.js'
 const app = createApp(App)
 app.use(ElementPlus)
 app.use(router)
 app.use(VueCookies)
 app.use(createPinia())
+app.provide('socket', socket)
 app.mount('#app')

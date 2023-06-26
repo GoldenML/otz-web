@@ -1,73 +1,86 @@
 <template>
   <div>
     <div class="chat-top">
-      {{store.msgs[username]?.nickname}}
+      {{ store.msgs[username]?.nickname }}
     </div>
 
     <div id="chat-message" class="chat-message">
       <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
-        <template v-if="msg.from_username === store.msgs[username].username" >
-          <div style="text-align: left; margin-left: 30px;margin-bottom: 10px;">
-            <img @click.stop="handleShowInfo($event, false)" alt="" style="vertical-align: middle; cursor: pointer" :src="store.msgs[username].avatar" :width="32" :height="32">
-            <div style="display: inline-block; line-height: 32px;height: 32px; background-color: rgb(255, 255, 255); margin-left: 5px; padding:0 10px; border-radius:5px; font-size: 14px">{{msg.text_msg.text}}</div>
+        <template v-if="msg.from_username === store.msgs[username].username">
+          <div class="chat-message-left">
+            <img
+              alt=""
+              style="vertical-align: middle; cursor: pointer"
+              :src="store.msgs[username].avatar"
+              :width="32"
+              :height="32"
+              @click.stop="handleShowInfo($event, false)"
+            >
+            <div class="chat-message-left__box">{{ msg.text_msg.text }}</div>
           </div>
         </template>
-        <template v-else >
-          <div style="text-align: right; margin-right: 30px;margin-bottom: 10px;">
-            <div style="display: inline-block; line-height: 32px;min-height: 32px; margin-right: 5px;background-color: rgb(149, 236, 105);padding:0 10px; border-radius:5px; font-size: 14px; white-space: pre-wrap">{{msg.text_msg.text}}</div>
-            <img @click.stop="handleShowInfo($event, true)" alt="" style="float: right; vertical-align: middle; cursor: pointer" :src="store.msgs[username].avatar" :width="32" :height="32">
+        <template v-else>
+          <div class="chat-message-right">
+            <div class="chat-message-right__box">{{ msg.text_msg.text }}</div>
+            <img
+              alt=""
+              style="float: right; vertical-align: middle; cursor: pointer"
+              :src="store.msgs[username].avatar"
+              :width="32"
+              :height="32"
+              @click.stop="handleShowInfo($event, true)"
+            >
           </div>
         </template>
       </div>
-      <div class="message-bottom"></div>
+      <div class="message-bottom" />
     </div>
     <div class="chat-tools">
       <el-popover
-          placement="top"
-          :width="300"
-          trigger="click"
+        placement="top"
+        :width="300"
+        trigger="click"
       >
         <template #default>
           <div style="color: #000000; font-size: 16px">
             全部表情
           </div>
-          <div class="emoji" v-for="(emoji, index) in emojis" :key="index" @click="addEmoji(emoji.emoji)">
+          <div v-for="(emoji, index) in emojis" :key="index" class="emoji" @click="addEmoji(emoji.emoji)">
             <el-tooltip
-                class="box-item"
-                effect="dark"
-                :show-after='500'
-                :content="emoji.name"
+              class="box-item"
+              effect="dark"
+              :show-after="500"
+              :content="emoji.name"
             >
               {{ emoji.emoji }}
             </el-tooltip>
           </div>
         </template>
         <template #reference>
-          <img width="30" height="30" alt="" src="@/assets/img/smile.png"/>
+          <img width="30" height="30" alt="" src="@/assets/img/smile.png">
         </template>
 
       </el-popover>
 
     </div>
-    <div class="chat-content">
-
-    </div>
+    <div class="chat-content" />
     <div class="chat-input">
-      <el-input @keydown.enter.exact.prevent="sendMessage" :autosize="{ minRows: 7, maxRows: 7 }" resize="none" v-model="message" type="textarea"></el-input>
+      <el-input v-model="message" :autosize="{ minRows: 7, maxRows: 7 }" resize="none" type="textarea" @keydown.enter.exact.prevent="sendMessage" />
     </div>
     <div style="text-align: right; padding-right: 20px; margin-top:  13px; position: absolute; bottom: 15px; right: 20px">
-      <el-button @click="sendMessage"  :disabled="!Boolean(message)" class="btn-send">发送</el-button>
+      <el-button :disabled="!Boolean(message)" class="btn-send" @click="sendMessage">发送</el-button>
     </div>
   </div>
   <UserInfo ref="userInfoRef" />
 </template>
 <script setup lang="js">
-import {defineAsyncComponent, onMounted, reactive, ref, getCurrentInstance, inject, onUpdated, watch} from "vue";
+import {defineAsyncComponent, onMounted, reactive, ref, getCurrentInstance, inject, onUpdated, watch} from 'vue'
 import emojiList from './emojis.js'
-import {post} from "@/utils/request.js";
-import ApiPath from "@/common/ApiPath.js";
-import {userStore} from "@/store/userStore.js";
+import {post} from '@/utils/request.js'
+import ApiPath from '@/common/ApiPath.js'
+import {userStore} from '@/store/userStore.js'
 import UserInfo from '@/components/UserInfo.vue'
+import _ from 'lodash'
 
 const props = defineProps({
   username: String
@@ -84,7 +97,7 @@ const addEmoji = (emoji) => {
 }
 const globalFunc = inject('globalFunc')
 
-watch(props, (val) => {
+watch(props, () => {
   console.log(store.messages)
   message.value = store.messages[props.username] || ''
 })
@@ -100,7 +113,7 @@ onUpdated(() => {
   window.removeEventListener('keydown', handleKeydown)
   document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
 })
-const sendMessage = () => {
+const sendMessage = _.debounce(() => {
   post(ApiPath.USER_SEND_MSG, {
     msg: {
       msg_type: 1,
@@ -125,13 +138,19 @@ const sendMessage = () => {
     }
 
   })
-}
+}, 300)
 const handleKeydown = (key) => {
   console.log(key)
 }
 const handleShowInfo = (e, left) => {
-  console.log(1111)
-  console.log(e, left)
+  document.querySelector('html').click()
+  if (left) {
+    store.updateLookUserInfo(store.userInfo)
+  } else {
+    const idx = store.friendInfos.findIndex(e => e.username === props.username)
+    store.updateLookUserInfo(store.friendInfos[idx])
+  }
+
   userInfoRef.value.handleShowInfo(e, left)
 }
 
@@ -148,6 +167,31 @@ const handleShowInfo = (e, left) => {
   max-height: calc(800px - 300px);
   overflow: auto;
   background-color: rgb(245,245,245);
+  &-left{
+    margin-left: 30px;
+    margin-bottom: 10px;
+    &__box{
+      text-align: left;
+      display: inline-block;
+      line-height: 32px;
+      min-height: 32px;
+      background-color: rgb(255, 255, 255);
+      margin-left: 5px;
+      padding:0 10px;
+      border-radius:5px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+  }
+  &-right{
+    text-align: right;
+    margin-right: 30px;
+    margin-bottom: 10px;
+    &__box{
+      text-align: left;
+      display: inline-block; line-height: 32px;min-height: 32px; margin-right: 5px;background-color: rgb(149, 236, 105);padding:0 10px; border-radius:5px; font-size: 14px;white-space: pre-wrap;
+    }
+  }
 }
 .chat-tools{
   display: flex;

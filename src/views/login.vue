@@ -1,41 +1,39 @@
 <template>
   <div class="login">
-    <transition enter-active-class="animate__animated animate__fadeIn" >
-        <el-form v-if="show" :model="loginForm" ref="ruleFormRef" :rules="rules" class="login-form">
-          <div class="login-form__title">OTZ <transition enter-from-class="animate__animated animate__fadeIn"><div class="login-form__title-text">tfsb，tfsb，tfsb，重要的事情说三遍</div></transition></div>
-          <el-form-item prop="email">
-            <el-input v-model="loginForm.email" placeholder="邮箱" style="width: 300px"></el-input>
-          </el-form-item>
-          <el-form-item prop="code">
-            <el-input v-model="loginForm.code" type="password" placeholder="验证码" style="width: 300px">
-              <template v-slot:suffix>
-                <el-button :disabled="buttonDisabled" @click="sendVerifyCode(ruleFormRef)" v-if="timer === 0" class="btn-send" style="margin-right: -10px">发送验证码</el-button>
-                <el-button disabled v-else class="btn-send" style="margin-right: -10px">剩余{{timer}}秒</el-button>
-              </template>
-            </el-input>
-          </el-form-item>
-          <el-form-item >
-
-          </el-form-item>
-          <div style="text-align: center">
-            <el-button @click="login(ruleFormRef)" class="btn-primary" style="width: 300px;height: 40px;font-size: 16px">登 录</el-button>
-          </div>
-          <div style="text-align: center">
-            <el-button type="text">注册用户</el-button>
-          </div>
-        </el-form>
+    <transition enter-active-class="animate__animated animate__fadeIn">
+      <el-form v-if="show" ref="ruleFormRef" :model="loginForm" :rules="rules" class="login-form">
+        <div class="login-form__title">OTZ <transition enter-from-class="animate__animated animate__fadeIn"><div class="login-form__title-text">tfsb，tfsb，tfsb，重要的事情说三遍</div></transition></div>
+        <el-form-item prop="email">
+          <el-input v-model="loginForm.email" placeholder="邮箱" style="width: 300px" />
+        </el-form-item>
+        <el-form-item prop="code">
+          <el-input v-model="loginForm.code" type="password" placeholder="验证码" style="width: 300px">
+            <template #suffix>
+              <el-button v-if="timer === 0" :disabled="buttonDisabled" class="btn-send" style="margin-right: -10px" @click="sendVerifyCode(ruleFormRef)">发送验证码</el-button>
+              <el-button v-else disabled class="btn-send" style="margin-right: -10px">剩余{{ timer }}秒</el-button>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item />
+        <div style="text-align: center">
+          <el-button class="btn-primary" style="width: 300px;height: 40px;font-size: 16px" @click="login(ruleFormRef)">登 录</el-button>
+        </div>
+        <div style="text-align: center">
+          <el-button type="text">注册用户</el-button>
+        </div>
+      </el-form>
     </transition>
 
   </div>
 
 </template>
-<script setup lang="ts">
-import {onMounted, reactive, ref} from "vue";
+<script setup lang="js">
+import {onMounted, reactive, ref} from 'vue'
 import { useRouter } from 'vue-router'
-import { post } from "../utils/request.js";
-import ApiPath from "../common/ApiPath.js";
-import { FormInstance } from "element-plus";
-import { FormRules } from "element-plus/lib/components";
+import { post } from '../utils/request.js'
+import ApiPath from '../common/ApiPath.js'
+import { FormInstance } from 'element-plus'
+import { FormRules } from 'element-plus/lib/components'
 import { getCurrentInstance } from 'vue'
 import 'animate.css'
 const { proxy } = getCurrentInstance()
@@ -43,14 +41,14 @@ const { proxy } = getCurrentInstance()
 const show = ref(false)
 onMounted(() => {
   setTimeout(() => {
-  show.value = true
+    show.value = true
   }, 500)
 })
 const loginForm = reactive({
   email: '',
   code: ''
 })
-const rules = reactive<FormRules>({
+const rules = reactive < FormRules > {
   email: [{
     required: true,
     message: '请输入邮箱',
@@ -61,14 +59,16 @@ const rules = reactive<FormRules>({
     message: '请输入验证码',
     trigger: 'change'
   }]
-})
-const ruleFormRef = ref<FormInstance>()
+}
+const ruleFormRef = ref()
 
 const router = useRouter()
-const login = async (formEl: FormInstance | undefined) => {
-  if(!formEl)return
+const login = async (formEl) => {
+  if(!formEl) {
+    return
+  }
   console.log(978777)
-  await formEl.validate((valid:any) => {
+  await formEl.validate((valid) => {
     if (valid) {
       post(ApiPath.USER_LOGIN, {
         login_type:2,
@@ -94,11 +94,13 @@ const login = async (formEl: FormInstance | undefined) => {
 }
 const timer = ref(0)
 const buttonDisabled = ref(false)
-let interval = ref<number>()
-const sendVerifyCode = async (formEl: FormInstance | undefined) => {
-  if(!formEl)return
-  await formEl.validateField('email',  async (valid:any) => {
-    if(valid){
+let interval = ref()
+const sendVerifyCode = async (formEl) => {
+  if(!formEl) {
+    return
+  }
+  await formEl.validateField('email', async (valid) => {
+    if(valid) {
 
       buttonDisabled.value = true
       const response = await post(ApiPath.SEND_VERIFY_CODE, {

@@ -6,36 +6,34 @@
           设置
         </div>
         <div class="header__icon">
-          <el-icon><Close></Close></el-icon>
+          <el-icon><Close /></el-icon>
         </div>
 
       </div>
       <div class="body">
         <div class="body__left">
           <div>
-            <div style="margin-bottom: 15px" v-for="(item,index) in list" :key="index">
-              {{item}}
-              <div style="height: 14px;margin-top: 3px;border-right: 1px solid rgb(61, 206, 61); float:right;margin-left: 20px;z-index:10"></div>
+            <div v-for="(item,index) in list" :key="index" style="margin-bottom: 15px">
+              {{ item }}
+              <div style="height: 14px;margin-top: 3px;border-right: 1px solid rgb(61, 206, 61); float:right;margin-left: 20px;z-index:10" />
             </div>
           </div>
-          <div style="height: 100%;border-right: 1px solid rgb(227, 227, 227); float:right;"></div>
+          <div style="height: 100%;border-right: 1px solid rgb(227, 227, 227); float:right;" />
         </div>
-        <div class="body__right">
-
-        </div>
+        <div class="body__right" />
       </div>
-      <div class="footer"></div>
+      <div class="footer" />
     </div>
   </div>
 </template>
 <script setup lang="js">
-import {getCurrentInstance, reactive} from "vue";
-import {Close} from "@element-plus/icons-vue";
+import {getCurrentInstance, reactive} from 'vue'
+import {Close} from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance()
 
 const list = reactive([
-    '账号设置', '关于OTZ'
+  '账号设置', '关于OTZ'
 ])
 const props = defineProps({
   title: String,

@@ -1,21 +1,21 @@
 <template>
   <div class="chats">
     <div class="sidebar">
-      <FriendList @changeFriend="handleChangeFriend"/>
+      <FriendList @changeFriend="handleChangeFriend" />
     </div>
     <div class="content">
-<!--      <router-view></router-view>-->
-      <ChatModal @updateMessage="updateMessage" v-if="store.operateUsername" :username="store.operateUsername"></ChatModal>
+      <!--      <router-view></router-view>-->
+      <ChatModal v-if="store.operateUsername" :username="store.operateUsername" @updateMessage="updateMessage" />
     </div>
   </div>
 
 </template>
 <script setup lang="js">
-import FriendList from "./FriendList.vue";
-import {onMounted, ref} from "vue";
+import FriendList from './FriendList.vue'
+import {onMounted, ref} from 'vue'
 import ChatModal from './chat-modal/index.vue'
-import {useRoute, useRouter} from "vue-router";
-import {userStore} from "@/store/userStore.js";
+import {useRoute, useRouter} from 'vue-router'
+import {userStore} from '@/store/userStore.js'
 const username = ref(null)
 const route = useRoute()
 const store = userStore()

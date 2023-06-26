@@ -1,7 +1,5 @@
 <template>
-  <div>
-
-  </div>
+  <div />
 </template>
 <script setup lang="js">
 
@@ -9,3 +7,4 @@
 <style lang="scss" scoped>
 
 </style>
+

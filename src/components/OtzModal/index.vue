@@ -3,25 +3,25 @@
     <div class="otz-modal__content" :style="{ width }">
       <div class="otz-modal__content-header">
         <div class="otz-modal__header-description">
-          <slot name="header"></slot>
+          <slot name="header" />
           <div class="otz-modal__header-icon" @click="handleCancel">
-            <el-icon><Close></Close></el-icon>
+            <el-icon><Close /></el-icon>
           </div>
         </div>
       </div>
       <div class="otz-modal__content-body">
-        <slot name="content"></slot>
+        <slot name="content" />
       </div>
       <div class="otz-modal__content-footer">
-        <slot name="footer"></slot>
+        <slot name="footer" />
       </div>
-      <slot name="other"></slot>
+      <slot name="other" />
     </div>
   </div>
 </template>
 <script setup lang="js">
-import { getCurrentInstance } from "vue";
-import {Close} from "@element-plus/icons-vue";
+import { getCurrentInstance } from 'vue'
+import {Close} from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance()
 const props = defineProps({

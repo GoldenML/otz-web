@@ -2,45 +2,45 @@
   <div class="friend-list">
     <template v-if="isAdd">
       <div class="search-input">
-        <el-input v-model="searchText" clearable placeholder="用户名" style="width: 190px;margin-right: 10px;"></el-input>
-        <span @click.prevent="cancelAdd" type="text" class="btn-words">取消</span>
+        <el-input v-model="searchText" clearable placeholder="用户名" style="width: 190px;margin-right: 10px;" />
+        <span type="text" class="btn-words" @click.prevent="cancelAdd">取消</span>
       </div>
       <div v-if="searchStatus === 2" class="no-user">
         无法找到该用户，请检查你输入的用户名是否正确
       </div>
-      <div class="search-button" @click.stop="searchUser" v-if="searchText">
-        <div class="search-button_content">搜索：{{searchText}}</div>
+      <div v-if="searchText" class="search-button" @click.stop="searchUser">
+        <div class="search-button_content">搜索：{{ searchText }}</div>
         <div class="search-button_icon">
-          <el-icon><ArrowRight></ArrowRight></el-icon>
+          <el-icon><ArrowRight /></el-icon>
         </div>
       </div>
-      <div @click.stop v-if="searchStatus === 1" class="search-result">
+      <div v-if="searchStatus === 1" class="search-result" @click.stop>
         <div class="search-result_description">
           <div style="padding-top: 20px;display: flex; line-height: 20px">
             <div>
-              <img :src="userInfo.avatar" width="55" height="55" alt="" />
+              <img :src="userInfo.avatar" width="55" height="55" alt="">
             </div>
 
             <div style="margin-left: 15px">
-              <div style="display: inline-block; line-height: 20px">{{userInfo.nickname}}
+              <div style="display: inline-block; line-height: 20px">{{ userInfo.nickname }}
                 <el-icon color="rgb(16, 174, 255)">
                   <UserFilled />
                 </el-icon>
               </div>
-              <div style="display: inline-block;line-height: 20px;color: rgb(158, 158, 158);font-size: 13px">地区：{{userInfo.city}}</div><br />
+              <div style="display: inline-block;line-height: 20px;color: rgb(158, 158, 158);font-size: 13px">地区：{{ userInfo.city }}</div><br>
             </div>
           </div>
         </div>
         <div class="search-result_operate">
-          <el-button @click="addUser" class="btn-conditional">添加到通讯录</el-button>
+          <el-button class="btn-conditional" @click="addUser">添加到通讯录</el-button>
         </div>
 
       </div>
     </template>
     <template v-else>
       <div class="search-input">
-        <el-input v-model="keyword" clearable placeholder="请输入关键字" style="width: 190px;margin-right: 15px;"></el-input>
-        <el-icon @click.prevent="addFriend" style="vertical-align: middle; cursor:pointer;"><Plus /></el-icon>
+        <el-input v-model="keyword" clearable placeholder="请输入关键字" style="width: 190px;margin-right: 15px;" />
+        <el-icon style="vertical-align: middle; cursor:pointer;" @click.prevent="addFriend"><Plus /></el-icon>
       </div>
 
     </template>
@@ -48,23 +48,28 @@
   </div>
   <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">新的朋友</div>
   <div class="friend__item" :class="{'friend__item--active': active === 'add_friend'}" @click="setActive('add_friend')">
-    <img  :width="30" :height="30"  style="margin: 10px; background-color: rgb(250, 157, 59)"  alt="" src="@/assets/img/add-friend.png" />
+    <img :width="30" :height="30" style="margin: 10px; background-color: rgb(250, 157, 59)" alt="" src="@/assets/img/add-friend.png">
     <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">新的朋友</div>
   </div>
+  <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部群组</div>
+  <div v-for="(item, index) in store.groupInfos" :key="item.group_id" class="friend__item" :class="{'friend__item--active': active === item.group_id}" @click="setActive(item.group_id, 'group', index)">
+    <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.group_avatar">
+    <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{ item.group_name }}</div>
+  </div>
   <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部朋友</div>
-  <div class="friend__item" :class="{'friend__item--active': active === index}" v-for="(item, index) in store.friendInfos" :key="index" @click="setActive(index)">
-    <img  :width="30" :height="30"  style="margin: 10px"  alt="" :src="item.avatar" />
-    <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{item.nickname}}</div>
+  <div v-for="(item, index) in store.friendInfos" :key="item.username" class="friend__item" :class="{'friend__item--active': active === item.username}" @click="setActive(item.username, 'friend', index)">
+    <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.avatar">
+    <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{ item.nickname }}</div>
   </div>
 </template>
 <script setup lang="js">
-import {defineAsyncComponent, defineComponent, onBeforeUnmount, onMounted, onUnmounted, reactive, ref} from "vue";
-import {ArrowRight, Plus, UserFilled} from "@element-plus/icons-vue";
-import { post } from "@/utils/request.js";
-import ApiPath from "@/common/ApiPath.js";
+import {defineAsyncComponent, defineComponent, onBeforeUnmount, onMounted, onUnmounted, reactive, ref} from 'vue'
+import {ArrowRight, Plus, UserFilled} from '@element-plus/icons-vue'
+import { post } from '@/utils/request.js'
+import ApiPath from '@/common/ApiPath.js'
 import { getCurrentInstance } from 'vue'
-import {useRouter} from "vue-router";
-import {userStore} from "@/store/userStore.js";
+import {useRouter} from 'vue-router'
+import {userStore} from '@/store/userStore.js'
 const router = useRouter()
 const { proxy } = getCurrentInstance()
 
@@ -75,9 +80,9 @@ defineEmits(['changeFriend', 'handleShowNewFriend'])
 
 // 当前选中的用户
 const active = ref(-1)
-const setActive = (val) => {
+const setActive = (val, type, idx) => {
   active.value = val
-  proxy.$emit('changeFriend', val)
+  proxy.$emit('changeFriend', val, type, idx)
   // router.push(`/console/contacts/${list[val].username}`)
 }
 const store = userStore()

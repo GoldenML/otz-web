@@ -116,7 +116,7 @@ $basic-green-hover: rgb(56, 205, 127);
 }
 
 .btn-modal-ok {
-  @extend .btn-primary;
+  @extend .btn-conditional;
   width: 84px;
   height: 30px;
 }

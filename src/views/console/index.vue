@@ -1,29 +1,42 @@
 <template>
-   <div  class="container">
-     <transition enter-active-class="animate__animated animate__bounceIn">
-       <div v-if="show" class="layout-container">
-         <div class="sidebar">
-           <Menu></Menu>
-         </div>
-         <div class="content">
-           <router-view></router-view>
-         </div>
-       </div>
-     </transition>
-   </div>
+  <div class="container">
+    <transition enter-active-class="animate__animated animate__bounceIn">
+      <div v-if="show" class="layout-container">
+        <div class="sidebar">
+          <Menu />
+        </div>
+        <div class="content">
+          <router-view />
+        </div>
+      </div>
+    </transition>
+  </div>
 </template>
 <script setup lang="js">
 import Menu from './Menu.vue'
-import {onMounted, provide, ref} from "vue";
+import {inject, onMounted, provide, ref} from 'vue'
 import 'animate.css'
-import {post} from "@/utils/request.js";
-import ApiPath from "@/common/ApiPath.js";
-import {userStore} from "@/store/userStore.js";
+import {post} from '@/utils/request.js'
+import ApiPath from '@/common/ApiPath.js'
+import { userStore } from '@/store/userStore.js'
 import _ from 'lodash'
-const show =ref(false)
-const store =userStore()
+const show = ref(false)
+const store = userStore()
 
 onMounted(() => {
+  // const socket = inject('socket')
+  // const ws = socket(ApiPath.WS_CONNECT)
+  // ws.onopen = () => {
+  //   let msg = {
+  //     type: 'screen',
+  //     classId: 1
+  //   }
+  //   ws.send(JSON.stringify(msg))
+  // }
+  // ws.onmessage = ({ data }) => {
+  //   console.log(data)
+  // }
+
   setTimeout(() => {
     show.value = true
   },500)
@@ -33,6 +46,9 @@ onMounted(() => {
     }),
     post(ApiPath.USER_GET_FRIEND, {}).then(res => {
       store.updateFriendInfos(res.friends)
+    }),
+    post(ApiPath.USER_GET_GROUP_LIST, {}).then(res => {
+      store.updateGroupInfos(res.groups)
     })
   ]).then(() => {
     getAddHistory()
@@ -44,8 +60,8 @@ onMounted(() => {
   })
 })
 provide('globalFunc', {
-  getUserMsg: async () => await getUserMsg(),
-  getFriendInfos: async () => await getFriendInfos()
+  getUserMsg: async () => getUserMsg(),
+  getFriendInfos: async () => getFriendInfos()
 })
 const getFriendInfos = async () => {
   const res = await post(ApiPath.USER_GET_FRIEND, {})

@@ -2,55 +2,55 @@
   <div class="content">
     <div class="content1">
       <div>
-        <img :src="data.avatar" :width="60" :height="60" alt="" />
+        <img :src="data.avatar" :width="60" :height="60" alt="">
       </div>
       <div style="font-size: 14px; margin-left: 10px">
-        <div>{{data.nickname}}
+        <div>{{ data.nickname }}
           <el-icon color="rgb(16, 174, 255)" size="16">
             <UserFilled />
           </el-icon>
         </div>
-        <div style="font-size: 12px">用户名：{{data.username}}</div>
-        <div style="font-size: 12px">地区：{{data.city}}</div>
+        <div style="font-size: 12px">用户名：{{ data.username }}</div>
+        <div style="font-size: 12px">地区：{{ data.city }}</div>
 
       </div>
       <div style="position: absolute; right: 0">
         <el-popover
-            :popper-style="{padding: 0, width: '130px', 'min-width': '140px'}"
-            placement="right-start"
-            :width="200"
-            trigger="click"
-            content="this is content, this is content, this is content"
+          :popper-style="{padding: 0, width: '130px', 'min-width': '140px'}"
+          placement="right-start"
+          :width="200"
+          trigger="click"
+          content="this is content, this is content, this is content"
         >
           <template #default>
-            <div @click="handleDeleteFriend(data)" class="more-item">删除联系人</div>
+            <div class="more-item" @click="handleDeleteFriend(data)">删除联系人</div>
           </template>
           <template #reference>
-            <el-icon style="cursor:pointer;"><MoreFilled ></MoreFilled></el-icon>
+            <el-icon style="cursor:pointer;"><MoreFilled /></el-icon>
           </template>
         </el-popover>
 
       </div>
     </div>
 
-    <el-divider></el-divider>
-<!--    <div class="content2">-->
-<!--      <div>备注名：</div>-->
-<!--    </div>-->
-<!--    <el-divider></el-divider>-->
+    <el-divider />
+    <!--    <div class="content2">-->
+    <!--      <div>备注名：</div>-->
+    <!--    </div>-->
+    <!--    <el-divider></el-divider>-->
     <div class="content3">
-      <el-button @click="handleSendMsg" class="btn-conditional">发消息</el-button>
+      <el-button class="btn-conditional" @click="handleSendMsg">发消息</el-button>
     </div>
   </div>
 
 </template>
 <script setup lang="js">
-import {post} from "@/utils/request.js";
-import ApiPath from "@/common/ApiPath.js";
-import {useRoute, useRouter} from "vue-router";
-import {MoreFilled, Smoking, UserFilled} from "@element-plus/icons-vue";
-import {userStore} from "@/store/userStore.js";
-import {inject} from "vue";
+import {post} from '@/utils/request.js'
+import ApiPath from '@/common/ApiPath.js'
+import {useRoute, useRouter} from 'vue-router'
+import {MoreFilled, Smoking, UserFilled} from '@element-plus/icons-vue'
+import {userStore} from '@/store/userStore.js'
+import {inject} from 'vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -60,7 +60,7 @@ const props = defineProps({
 const globalFunc = inject('globalFunc')
 const store = userStore()
 const handleSendMsg = () => {
-  if (!store.msgs[props.data.username]){
+  if (!store.msgs[props.data.username]) {
     store.updateMsgs(Object.assign(store.msgs, {
       [props.data.username]: {
         msgList: [],
