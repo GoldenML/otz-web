@@ -5,7 +5,14 @@
     </div>
     <div style="margin: 10px 50px;max-height: 600px; overflow: scroll">
       <div v-for="item in members" :key="item.username" style="float: left; padding: 0 10px">
-        <img :src="item.avatar" :width="60" :height="60" alt="">
+        <img
+          :src="item.avatar"
+          :width="60"
+          :height="60"
+          alt=""
+          style="cursor:pointer;"
+          @click.stop="handleShowInfo($event, false, item.username)"
+        >
         <div style="width: 60px; overflow: hidden;text-overflow: ellipsis;white-space: nowrap">{{ item.nickname }}</div>
       </div>
 
@@ -14,6 +21,7 @@
       <el-button class="btn-group-send" @click="sendMessage">发消息</el-button>
     </div>
   </div>
+  <UserInfo ref="userInfoRef" />
 </template>
 <script setup lang="js">
 import {onMounted, onUpdated, ref, watch} from 'vue'
@@ -21,6 +29,9 @@ import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
 import {userStore} from '@/store/userStore.js'
 import {useRouter} from 'vue-router'
+import {User} from '@element-plus/icons-vue'
+import UserInfo from '@/components/UserInfo.vue'
+const userInfoRef = ref()
 
 const props = defineProps({
   groupId: String
@@ -61,6 +72,11 @@ const sendMessage = () => {
   router.push({
     path: '/console/chats'
   })
+}
+const handleShowInfo = (e, left, username) => {
+  store.updateLookUserInfo(store.groupMember[props.groupId][username])
+
+  userInfoRef.value.handleShowInfo(e, left)
 }
 </script>
 <style lang="scss" scoped>
