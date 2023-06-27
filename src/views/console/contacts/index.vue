@@ -28,9 +28,11 @@ const handleChangeFriend = (val, type, idx) => {
   if (val === 'add_friend') {
     friendInfo.value = null
     showNewFriend.value = true
+    groupInfo.value = null
   } else if(type === 'friend') {
     friendInfo.value = store.friendInfos[idx]
     showNewFriend.value = false
+    groupInfo.value = null
   } else {
     groupInfo.value = store.groupInfos[idx]
     showNewFriend.value = false

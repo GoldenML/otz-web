@@ -1,12 +1,19 @@
 <template>
-  <div class="group-info-top">
-    群聊
-  </div>
-  <div v-for="item in members" :key="item.username" style="float: left; padding: 10px">
-    <img :src="item.avatar" :width="60" :height="60" alt="">
-    <div style="width: 60px; overflow: hidden;text-overflow: ellipsis;white-space: nowrap">{{ item.nickname }}</div>
-  </div>
+  <div style="position:relative;height: 100%">
+    <div class="group-info-top">
+      群聊
+    </div>
+    <div style="margin: 10px 50px;max-height: 600px; overflow: scroll">
+      <div v-for="item in members" :key="item.username" style="float: left; padding: 0 10px">
+        <img :src="item.avatar" :width="60" :height="60" alt="">
+        <div style="width: 60px; overflow: hidden;text-overflow: ellipsis;white-space: nowrap">{{ item.nickname }}</div>
+      </div>
 
+    </div>
+    <div style="position: absolute; left: 50%; transform: translate(-50%); bottom: 50px">
+      <el-button class="btn-group-send">发消息</el-button>
+    </div>
+  </div>
 </template>
 <script setup lang="js">
 import {onMounted, onUpdated, ref, watch} from 'vue'

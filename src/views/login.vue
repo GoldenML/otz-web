@@ -32,8 +32,6 @@ import {onMounted, reactive, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { post } from '../utils/request.js'
 import ApiPath from '../common/ApiPath.js'
-import { FormInstance } from 'element-plus'
-import { FormRules } from 'element-plus/lib/components'
 import { getCurrentInstance } from 'vue'
 import 'animate.css'
 const { proxy } = getCurrentInstance()
@@ -48,7 +46,7 @@ const loginForm = reactive({
   email: '',
   code: ''
 })
-const rules = reactive < FormRules > {
+const rules = reactive({
   email: [{
     required: true,
     message: '请输入邮箱',
@@ -59,7 +57,7 @@ const rules = reactive < FormRules > {
     message: '请输入验证码',
     trigger: 'change'
   }]
-}
+})
 const ruleFormRef = ref()
 
 const router = useRouter()

@@ -134,4 +134,10 @@ $basic-green-hover: rgb(56, 205, 127);
   font-size: 12px;
 }
 
+.btn-group-send{
+  @extend .btn-conditional;
+  height: 33px;
+  width: 135px;
+  font-size: 14px;
+}
 
