@@ -5,34 +5,73 @@
     </div>
 
     <div id="chat-message" class="chat-message">
-      <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
-        <template v-if="msg.from_username === store.msgs[username].username">
-          <div class="chat-message-left">
-            <img
-              alt=""
-              style="vertical-align: middle; cursor: pointer"
-              :src="store.msgs[username].avatar"
-              :width="32"
-              :height="32"
-              @click.stop="handleShowInfo($event, false)"
-            >
-            <div class="chat-message-left__box">{{ msg.text_msg.text }}</div>
-          </div>
-        </template>
-        <template v-else>
-          <div class="chat-message-right">
-            <div class="chat-message-right__box">{{ msg.text_msg.text }}</div>
-            <img
-              alt=""
-              style="float: right; vertical-align: middle; cursor: pointer"
-              :src="store.msgs[username].avatar"
-              :width="32"
-              :height="32"
-              @click.stop="handleShowInfo($event, true)"
-            >
-          </div>
-        </template>
+      <div v-if="store.msgs[username].type === 1">
+        <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
+          <template v-if="msg.from_username === store.msgs[username].username">
+            <div class="chat-message-left">
+              <img
+                alt=""
+                style="float:left;vertical-align: middle; cursor: pointer"
+                :src="store.msgs[username].avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, false)"
+              >
+              <div class="chat-message-left__box">{{ msg.text_msg.text }}</div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="chat-message-right">
+              <div class="chat-message-right__box">{{ msg.text_msg.text }}</div>
+              <img
+                alt=""
+                style="float: right; vertical-align: middle; cursor: pointer"
+                :src="store.msgs[username].avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, true)"
+              >
+            </div>
+          </template>
+        </div>
       </div>
+      <div v-else-if="store.msgs[username].type === 2">
+        <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
+          <template v-if="msg.isSystemMsg">
+            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)"> {{ msg.text_msg.text }}</div>
+          </template>
+          <template v-else-if="msg.from_username === store.userInfo.username">
+            <div class="chat-message-right">
+
+              <div class="chat-message-right__box">{{ msg.text_msg.text }}</div>
+              <img
+                alt=""
+                style="float: right; vertical-align: middle; cursor: pointer"
+                :src="store.userInfo.avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, true, true)"
+              >
+            </div>
+
+          </template>
+          <template v-else>
+            <div class="chat-message-left">
+              <img
+                alt=""
+                style="float:left;vertical-align: middle; cursor: pointer"
+                :src="store.groupMember[username][msg.from_username].avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, false, true, msg.from_username)"
+              >
+              <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)">{{ store.groupMember[username][msg.from_username].nickname }}</div>
+              <div class="chat-message-left__box">{{ msg.text_msg.text }}</div>
+            </div>
+          </template>
+        </div>
+      </div>
+
       <div class="message-bottom" />
     </div>
     <div class="chat-tools">
@@ -98,11 +137,9 @@ const addEmoji = (emoji) => {
 const globalFunc = inject('globalFunc')
 
 watch(props, () => {
-  console.log(store.messages)
   message.value = store.messages[props.username] || ''
 })
 onMounted(() => {
-  console.log(3333, document.getElementById('chat-message').scrollHeight)
   window.addEventListener('keydown', handleKeydown)
   document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
 })
@@ -114,38 +151,64 @@ onUpdated(() => {
   document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
 })
 const sendMessage = _.debounce(() => {
-  post(ApiPath.USER_SEND_MSG, {
-    msg: {
-      msg_type: 1,
-      from_type: 1,
-      to_type: 1,
-      to_username: store.msgs[props.username].username,
-      text_msg: {
-        text: message.value
-      },
-    }
-  }).then(res => {
-    if (res.code === 0) {
-      message.value = ''
-      globalFunc.getUserMsg().then(() => {
-        proxy.$nextTick(() => {
-          console.log(3333, document.getElementById('chat-message').scrollHeight)
-          document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+  if (store.msgs[props.username].type === 1) {
+    post(ApiPath.USER_SEND_MSG, {
+      msg: {
+        msg_type: 1,
+        from_type: 1,
+        to_type: 1,
+        to_username: props.username,
+        text_msg: {
+          text: message.value
+        },
+      }
+    }).then(res => {
+      if (res.code === 0) {
+        message.value = ''
+        globalFunc.getUserMsg().then(() => {
+          proxy.$nextTick(() => {
+            document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+          })
         })
-      })
-    } else {
-      proxy.$message({type: 'error', message: res.msg})
-    }
+      } else {
+        proxy.$message({type: 'error', message: res.msg})
+      }
 
-  })
+    })
+  } else if(store.msgs[props.username].type === 2) {
+    post(ApiPath.USER_SEND_MSG, {
+      msg: {
+        msg_type: 1,
+        from_type: 1,
+        to_type: 2,
+        to_username: props.username,
+        text_msg: {
+          text: message.value
+        },
+      }
+    }).then(res => {
+      if (res.code === 0) {
+        message.value = ''
+        globalFunc.getUserMsg().then(() => {
+          proxy.$nextTick(() => {
+            document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+          })
+        })
+      } else {
+        proxy.$message({type: 'error', message: res.msg})
+      }
+    })
+  }
+
 }, 300)
 const handleKeydown = (key) => {
-  console.log(key)
 }
-const handleShowInfo = (e, left) => {
+const handleShowInfo = (e, left, isGroup, username) => {
   document.querySelector('html').click()
   if (left) {
     store.updateLookUserInfo(store.userInfo)
+  } else if (isGroup) {
+    store.updateLookUserInfo(store.groupMember[props.username][username])
   } else {
     const idx = store.friendInfos.findIndex(e => e.username === props.username)
     store.updateLookUserInfo(store.friendInfos[idx])
@@ -168,8 +231,9 @@ const handleShowInfo = (e, left) => {
   overflow: auto;
   background-color: rgb(245,245,245);
   &-left{
+    margin-top: 10px;
     margin-left: 30px;
-    margin-bottom: 10px;
+    padding-bottom: 10px;
     &__box{
       text-align: left;
       display: inline-block;
@@ -185,11 +249,20 @@ const handleShowInfo = (e, left) => {
   }
   &-right{
     text-align: right;
+    margin-top: 10px;
     margin-right: 30px;
-    margin-bottom: 10px;
+    padding-bottom: 10px;
     &__box{
       text-align: left;
-      display: inline-block; line-height: 32px;min-height: 32px; margin-right: 5px;background-color: rgb(149, 236, 105);padding:0 10px; border-radius:5px; font-size: 14px;white-space: pre-wrap;
+      display: inline-block;
+      line-height: 32px;
+      min-height: 32px;
+      margin-right: 5px;
+      background-color: rgb(149, 236, 105);
+      padding:0 10px;
+      border-radius:5px;
+      font-size: 14px;
+      white-space: pre-wrap;
     }
   }
 }

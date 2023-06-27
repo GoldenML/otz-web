@@ -20,9 +20,9 @@
   /*定义滑块 内阴影+圆角*/
   ::-webkit-scrollbar-thumb {
     border-radius: 10px;
-    background-color: $thumb-color;
+    background-color: rgb(210, 210,  210);
     &:hover{
-      background-color: $thumb-color-hover;
+      background-color: rgb(186, 186,  186);
     }
   }
   /* 当同时有垂直滚动条和水平滚动条时交汇的部分 */

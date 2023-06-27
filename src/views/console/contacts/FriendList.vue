@@ -46,20 +46,22 @@
     </template>
 
   </div>
-  <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">新的朋友</div>
-  <div class="friend__item" :class="{'friend__item--active': active === 'add_friend'}" @click="setActive('add_friend')">
-    <img :width="30" :height="30" style="margin: 10px; background-color: rgb(250, 157, 59)" alt="" src="@/assets/img/add-friend.png">
-    <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">新的朋友</div>
-  </div>
-  <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部群组</div>
-  <div v-for="(item, index) in store.groupInfos" :key="item.group_id" class="friend__item" :class="{'friend__item--active': active === item.group_id}" @click="setActive(item.group_id, 'group', index)">
-    <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.group_avatar">
-    <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{ item.group_name }}</div>
-  </div>
-  <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部朋友</div>
-  <div v-for="(item, index) in store.friendInfos" :key="item.username" class="friend__item" :class="{'friend__item--active': active === item.username}" @click="setActive(item.username, 'friend', index)">
-    <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.avatar">
-    <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{ item.nickname }}</div>
+  <div style="max-height: 739px; overflow-y:scroll">
+    <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">新的朋友</div>
+    <div class="friend__item" :class="{'friend__item--active': active === 'add_friend'}" @click="setActive('add_friend')">
+      <img :width="30" :height="30" style="margin: 10px; background-color: rgb(250, 157, 59)" alt="" src="@/assets/img/add-friend.png">
+      <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">新的朋友</div>
+    </div>
+    <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部群组</div>
+    <div v-for="(item, index) in store.groupInfos" :key="item.group_id" class="friend__item" :class="{'friend__item--active': active === item.group_id}" @click="setActive(item.group_id, 'group', index)">
+      <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.group_avatar">
+      <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{ item.group_name }}</div>
+    </div>
+    <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部朋友</div>
+    <div v-for="(item, index) in store.friendInfos" :key="item.username" class="friend__item" :class="{'friend__item--active': active === item.username}" @click="setActive(item.username, 'friend', index)">
+      <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.avatar">
+      <div style="display: inline-block; position: absolute; top: 0; margin-left: 5px">{{ item.nickname }}</div>
+    </div>
   </div>
 </template>
 <script setup lang="js">

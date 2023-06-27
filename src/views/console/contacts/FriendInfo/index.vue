@@ -63,10 +63,10 @@ const handleSendMsg = () => {
   if (!store.msgs[props.data.username]) {
     store.updateMsgs(Object.assign(store.msgs, {
       [props.data.username]: {
+        type: 1,
         msgList: [],
         nickname: props.data.nickname,
         avatar: props.data.avatar,
-        myAvatar: store.userInfo.avatar,
         lastMsg: '',
         username: props.data.username,
       }

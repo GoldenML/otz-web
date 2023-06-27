@@ -29,7 +29,7 @@
           </div>
           <div style="position: absolute; right: 10px;bottom: 10px">
             <el-button class="btn-modal-ok" :disabled="selected.length === 0" @click="handleSubmit">确定</el-button>
-            <el-button class="btn-modal-cancel">取消</el-button>
+            <el-button class="btn-modal-cancel" @click="handleCancel">取消</el-button>
           </div>
         </div>
       </div>
@@ -37,7 +37,7 @@
   </div>
 </template>
 <script setup lang="js">
-import {getCurrentInstance, onMounted, reactive, ref} from 'vue'
+import {getCurrentInstance, inject, onMounted, reactive, ref} from 'vue'
 import {userStore} from '@/store/userStore.js'
 import {CircleClose, Close} from '@element-plus/icons-vue'
 import ApiPath from '@/common/ApiPath.js'
@@ -51,7 +51,7 @@ const props = defineProps({
   title: String,
   width: String
 })
-defineEmits(['before-close'])
+defineEmits(['before-close', 'scroll'])
 const handleCancel = () => {
   proxy.$emit('before-close')
 }
@@ -59,13 +59,49 @@ const handleRemove = (username) => {
   const idx = selected.value.findIndex(v => v.username === username)
   selected.value.splice(idx, 1)
 }
-const handleSubmit = () => {
-  const res = post(ApiPath.USER_CREATE_GROUP, {
-    member_usernames: selected.value.map(e => e.username)
-  })
-  if (res.code === 0) {
+const globalFunc = inject('globalFunc')
+const handleSubmit = async () => {
+  if (selected.value.length === 1) {
+    const user = selected.value[0]
+    if (!store.msgs[user.username]) {
+      store.updateMsgs(Object.assign(store.msgs, {
+        [user.username]: {
+          type: 1,
+          msgList: [],
+          nickname: user.nickname,
+          avatar: user.avatar,
+          lastMsg: '',
+          username: user.username,
+        }
+      }))
+    }
+    store.updateOperateUsername(user.username)
+    proxy.$emit('before-close')
+  } else {
+    const res = await post(ApiPath.USER_CREATE_GROUP, {
+      member_usernames: selected.value.map(e => e.username)
+    })
+    if (res.code === 0) {
+      proxy.$message('创建成功')
+      proxy.$emit('before-close')
+      store.updateOperateUsername(res.group_info.group_id)
+      store.updateGroupInfos([...store.groupInfos, res.group_info])
 
+      post(ApiPath.USER_GROUP_GET_MEMBERS, {
+        group_id: res.group_info.group_id
+      }).then(res1 => {
+        const obj = {[res.group_info.group_id]: {}}
+        res1.members.forEach(v => {
+          obj[res.group_info.group_id][v.username] = v
+        })
+        store.updateGroupMember(Object.assign(store.groupMember, obj))
+      })
+
+      globalFunc.getUserMsg()
+      proxy.$emit('scroll')
+    }
   }
+
 }
 </script>
 <style lang="scss" scoped>

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { defineAsyncComponent } from 'vue'
 import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
+import {userStore} from '@/store/userStore.js'
 
 const routes = [
   {
@@ -73,6 +74,12 @@ router.beforeEach((to, from, next) => {
   console.log(to, from, next)
   if (to.meta.title) {
     document.title = to.meta.title
+  }
+  const store = userStore()
+  if (to.matched[1]?.path === '/console/chats') {
+    store.updateChatBadge(false)
+  } else if (to.matched[1]?.path === '/console/contacts') {
+    store.updateContactBadge(false)
   }
   next()
 

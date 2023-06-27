@@ -20,22 +20,12 @@ import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
 import { userStore } from '@/store/userStore.js'
 import _ from 'lodash'
+import {useRoute} from 'vue-router'
 const show = ref(false)
 const store = userStore()
 
 onMounted(() => {
-  // const socket = inject('socket')
-  // const ws = socket(ApiPath.WS_CONNECT)
-  // ws.onopen = () => {
-  //   let msg = {
-  //     type: 'screen',
-  //     classId: 1
-  //   }
-  //   ws.send(JSON.stringify(msg))
-  // }
-  // ws.onmessage = ({ data }) => {
-  //   console.log(data)
-  // }
+  connectWs()
 
   setTimeout(() => {
     show.value = true
@@ -47,22 +37,80 @@ onMounted(() => {
     post(ApiPath.USER_GET_FRIEND, {}).then(res => {
       store.updateFriendInfos(res.friends)
     }),
-    post(ApiPath.USER_GET_GROUP_LIST, {}).then(res => {
+    post(ApiPath.USER_GET_GROUP_LIST, {}).then(async res => {
       store.updateGroupInfos(res.groups)
+      await getAllGroupMember(res.groups)
     })
   ]).then(() => {
     getAddHistory()
     getUserMsg()
-    setInterval(() => {
-      getUserMsg()
-      getAddHistory()
-    }, 10000)
+    // setInterval(() => {
+    //   getUserMsg()
+    //   getAddHistory()
+    // }, 10000)
   })
 })
 provide('globalFunc', {
   getUserMsg: async () => getUserMsg(),
-  getFriendInfos: async () => getFriendInfos()
+  getFriendInfos: async () => getFriendInfos(),
+  getAllGroup: () => getAllGroup()
 })
+const connectWs = () => {
+  const route = useRoute()
+  const socket = inject('socket')
+  const ws = socket('otz/im/web_proxy/sync_notify')
+  ws.onopen = () => {
+    console.log('websocket已连接')
+  }
+  ws.onmessage = ({ data }) => {
+    console.log('websocket消息：', data)
+
+    switch (JSON.parse(data).notify_type) {
+    case 1:
+      if(route.matched[1].path === '/console/chats') {
+        store.updateContactBadge(true)
+      }
+      getAddHistory()
+      break
+    case 2:
+      if(route.matched[1].path === '/console/contacts') {
+        store.updateChatBadge(true)
+      }
+      getUserMsg()
+      break
+    default:
+      break
+    }
+  }
+  ws.onclose = () => {
+    setTimeout(() => {
+      connectWs()
+    }, 10000)
+    console.log('websocket连接已关闭')
+  }
+}
+const getAllGroup = () => {
+  post(ApiPath.USER_GET_GROUP_LIST, {}).then(async res => {
+    store.updateGroupInfos(res.groups)
+    await getAllGroupMember(res.groups)
+  })
+}
+const getAllGroupMember = (groups) => {
+  const groupMember = {}
+  Promise.all(groups.map(e => {
+    return post(ApiPath.USER_GROUP_GET_MEMBERS, {
+      group_id:  e.group_id
+    }).then(res => {
+      groupMember[e.group_id] = {}
+      res.members.forEach(v => [
+        groupMember[e.group_id][v.username] = v
+      ])
+    })
+  })).then(() => {
+    store.updateGroupMember(groupMember)
+  })
+
+}
 const getFriendInfos = async () => {
   const res = await post(ApiPath.USER_GET_FRIEND, {})
   if (res.code === 0) {
@@ -86,47 +134,108 @@ const getUserMsg = async () => {
     if (res.msgs.length > 0) {
       store.updateSequence(Number(res.msgs[res.msgs.length - 1].sequence))
     }
-
+    const newMessage = res.msgs.map(e => {
+      if (e.from_type === 1 && e.to_type === 1) {
+        if (userInfo.username === e.from_username) {
+          return e.to_username
+        }
+        return e.from_username
+      }
+      return e.to_username
+    })
+    const badges = {}
+    Object.keys(store.msgs).forEach(v => {
+      if(newMessage.includes(v) && store.operateUsername !== v) {
+        badges[v] = true
+      }
+    })
+    store.updateBadges(Object.assign(store.badges, badges))
     res.msgs?.forEach(e => {
-      if (userInfo.username === e.from_username) {
-        const idx = friendInfos.findIndex(user => user.username === e.to_username)
-        if (idx > -1) {
-          const friend = friendInfos[idx]
-          if (!obj[friend.username]) {
-            obj[friend.username] = {
-              nickname: friend.nickname,
-              avatar: friend.avatar,
-              myAvatar: userInfo.avatar,
-              lastMsg: e.text_msg.text,
-              username: friend.username,
-              msgList: [e],
-            }
-          } else {
-            if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
+      if (e.from_type === 1 && e.to_type === 1) {
+        if (userInfo.username === e.from_username) {
+          const idx = friendInfos.findIndex(user => user.username === e.to_username)
+          if (idx > -1) {
+            const friend = friendInfos[idx]
+            if (!obj[friend.username]) {
+              obj[friend.username] = {
+                type: 1,
+                nickname: friend.nickname,
+                avatar: friend.avatar,
+                lastMsg: e.text_msg.text,
+                username: friend.username,
+                msgList: [e],
+              }
+            } else if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
               obj[friend.username].lastMsg = e.text_msg.text
               obj[friend.username].msgList.push(e)
             }
           }
-        }
 
-      } else {
-        const idx = friendInfos.findIndex(user => user.username === e.from_username)
+        } else {
+          const idx = friendInfos.findIndex(user => user.username === e.from_username)
+          if (idx > -1) {
+            const friend = friendInfos[idx]
+            if (!obj[friend.username]) {
+              obj[friend.username] = {
+                type: 1,
+                nickname: friend.nickname,
+                avatar: friend.avatar,
+                lastMsg: e.text_msg.text,
+                username: friend.username,
+                msgList: [e],
+              }
+            } else {
+              if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
+                obj[friend.username].lastMsg = e.text_msg.text
+                obj[friend.username].msgList.push(e)
+              }
+            }
+          }
+        }
+      } else if(e.from_type === 1 && e.to_type === 2) {
+
+        const idx = store.groupInfos.findIndex(v => v.group_id === e.to_username)
         if (idx > -1) {
-          const friend = friendInfos[idx]
-          if (!obj[friend.username]) {
-            obj[friend.username] = {
-              nickname: friend.nickname,
-              avatar: friend.avatar,
-              myAvatar: userInfo.avatar,
+          const groupInfo = store.groupInfos[idx]
+          if(!obj[e.to_username]) {
+            obj[e.to_username] = {
+              type: 2,
+              nickname: groupInfo.group_name,
+              avatar: groupInfo.group_avatar,
+              lastUsername: e.from_username,
               lastMsg: e.text_msg.text,
-              username: friend.username,
+              username: e.group_id,
               msgList: [e],
             }
           } else {
-            if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
-              obj[friend.username].lastMsg = e.text_msg.text
-              obj[friend.username].msgList.push(e)
+            if(obj[e.to_username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
+              obj[e.to_username].lastUsername = e.from_username
+              obj[e.to_username].lastMsg = e.text_msg.text
+              obj[e.to_username].msgList.push(e)
             }
+          }
+        }
+
+      } else if(e.from_type === 4 && e.to_type === 2) {
+        const idx = store.groupInfos.findIndex(v => v.group_id === e.to_username)
+        if (idx > -1) {
+          const groupInfo = store.groupInfos[idx]
+          if (!obj[e.to_username]) {
+            obj[e.to_username] = {
+              type: 2,
+              nickname: groupInfo.group_name,
+              avatar: groupInfo.group_avatar,
+              lastUsername: e.from_username,
+              lastMsg: e.text_msg.text,
+              username: e.group_id,
+              msgList: [{...e, isSystemMsg: true,}],
+            }
+          }
+        } else {
+          if(obj[e.to_username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
+            obj[e.to_username].lastUsername = e.from_username
+            obj[e.to_username].lastMsg = e.text_msg.text
+            obj[e.to_username].msgList.push({...e, isSystemMsg: true,})
           }
         }
       }

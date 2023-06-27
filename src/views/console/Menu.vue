@@ -32,11 +32,17 @@
 
     </div>
     <el-menu-item index="/console/chats">
+
       <el-icon class="menu-icon">
-        <ChatLineRound />
+        <el-badge is-dot :hidden="!store.chatBadge">
+          <ChatLineRound />
+        </el-badge>
       </el-icon>
+
+
     </el-menu-item>
-    <el-menu-item index="/console/contacts"><el-icon class="menu-icon"><UserFilled /></el-icon></el-menu-item>
+    <el-menu-item index="/console/contacts"><el-icon class="menu-icon">
+      <el-badge :is-dot="store.contactBadge"><UserFilled /></el-badge></el-icon></el-menu-item>
     <el-menu-item class="bottom-item">
       <el-dropdown trigger="click" placement="top-end">
         <span>
