@@ -14,7 +14,7 @@
 </template>
 <script setup lang="js">
 import Menu from './Menu.vue'
-import {inject, onMounted, provide, ref} from 'vue'
+import {inject, onMounted, onUnmounted, provide, ref} from 'vue'
 import 'animate.css'
 import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
@@ -24,7 +24,11 @@ import {useRoute} from 'vue-router'
 const show = ref(false)
 const store = userStore()
 
+const globalClick = () => {
+  document.querySelector('html').click()
+}
 onMounted(() => {
+  window.addEventListener('resize', globalClick)
   connectWs()
 
   setTimeout(() => {
@@ -49,6 +53,9 @@ onMounted(() => {
     //   getAddHistory()
     // }, 10000)
   })
+})
+onUnmounted(() => {
+  window.addEventListener('resize', globalClick)
 })
 provide('globalFunc', {
   getUserMsg: async () => getUserMsg(),

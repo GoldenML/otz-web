@@ -44,20 +44,20 @@
     <el-menu-item index="/console/contacts"><el-icon class="menu-icon">
       <el-badge :is-dot="store.contactBadge"><UserFilled /></el-badge></el-icon></el-menu-item>
     <el-menu-item class="bottom-item">
-      <el-dropdown trigger="click" placement="top-end">
+      <el-dropdown trigger="click" placement="top-start">
         <span>
           <el-icon class="menu-icon"><Tools /></el-icon>
         </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="a" @click.native="showSetting">设置</el-dropdown-item>
-            <el-dropdown-item command="a" @click.native="logOut">退出</el-dropdown-item>
+            <el-dropdown-item command="a" @click.native="showSetting">个人设置</el-dropdown-item>
+            <el-dropdown-item command="a" @click.native="logOut">退出用户</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
     </el-menu-item>
   </el-menu>
-  <setting v-if="false" />
+  <setting v-if="settingVisible" @before-close="settingVisible = false" />
   <UserInfo ref="userInfoRef" />
 </template>
 <script setup lang="js">
@@ -96,9 +96,7 @@ const showSetting = () => {
 const store = userStore()
 const logOut = async () => {
   const res = await post(ApiPath.USER_LOGOUT, {})
-  if(res.code === 0) {
-    await router.push('/login')
-  }
+  await router.push('/login')
 
 }
 const left = ref(0)

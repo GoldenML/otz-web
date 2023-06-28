@@ -27,12 +27,14 @@
                   <UserFilled />
                 </el-icon>
               </div>
+              <div style="display: inline-block;line-height: 20px;color: rgb(158, 158, 158);font-size: 13px">用户名：{{ userInfo.username }}</div>
               <div style="display: inline-block;line-height: 20px;color: rgb(158, 158, 158);font-size: 13px">地区：{{ userInfo.city }}</div><br>
             </div>
           </div>
         </div>
         <div class="search-result_operate">
-          <el-button class="btn-conditional" @click="addUser">添加到通讯录</el-button>
+          <el-button v-if="existFriend" class="btn-conditional" @click="sendMessage">发消息</el-button>
+          <el-button v-else class="btn-conditional" @click="addUser">添加到通讯录</el-button>
         </div>
 
       </div>
@@ -64,6 +66,7 @@
       <div style="display: inline-block; position: absolute; top: 50%;transform:translate(0, -50%); margin-left: 5px">{{ item.nickname }}</div>
     </div>
   </div>
+  <AddFriend v-if="addFriendVisible" :data="userInfo" @close="addFriendVisible = false" />
 </template>
 <script setup lang="js">
 import {defineAsyncComponent, defineComponent, onBeforeUnmount, onMounted, onUnmounted, reactive, ref} from 'vue'
@@ -73,6 +76,7 @@ import ApiPath from '@/common/ApiPath.js'
 import { getCurrentInstance } from 'vue'
 import {useRouter} from 'vue-router'
 import {userStore} from '@/store/userStore.js'
+import AddFriend from './AddFriend.vue'
 const router = useRouter()
 const { proxy } = getCurrentInstance()
 
@@ -81,6 +85,7 @@ const keyword = ref('')
 
 defineEmits(['changeFriend', 'handleShowNewFriend'])
 
+const addFriendVisible = ref(null)
 // 当前选中的用户
 const active = ref(-1)
 const setActive = (val, type, idx) => {
@@ -112,23 +117,44 @@ const cancelAdd = () => {
 }
 const searchStatus = ref(0)
 const userInfo = ref({})
+const existFriend = ref(false)
 const searchUser = () => {
-  // searchStatus.value = 1
+  existFriend.value = false
   post(ApiPath.USER_GET_INFO, {
     username: searchText.value
   }).then(response => {
     if (response.code === 0) {
       searchStatus.value = 1
       userInfo.value = response.user_info
+      if (store.friendInfos.indexOf(e => e.username === response.user_info.username) > -1) {
+        existFriend.value = true
+      }
     } else {
       searchStatus.value = 2
     }
   })
 }
 const addUser = () => {
-  post(ApiPath.USER_ADD_FRIEND, {
-    username: store.userInfo.username,
-    friend_username: userInfo.value.username
+  addFriendVisible.value = true
+  document.querySelector('html').click()
+}
+const sendMessage = () => {
+  const user = userInfo.value
+  if (!store.msgs[user.username]) {
+    store.updateMsgs(Object.assign(store.msgs, {
+      [user.username]: {
+        type: 1,
+        msgList: [],
+        nickname: user.nickname,
+        avatar: user.avatar,
+        lastMsg: '',
+        username: user.username,
+      }
+    }))
+  }
+  store.updateOperateUsername(user.username)
+  router.push({
+    path: '/console/chats'
   })
 }
 </script>
@@ -173,7 +199,7 @@ const addUser = () => {
     position: absolute;
     background-color: rgb(255, 255, 255);
     z-index: 10;
-    width: 265px;
+    width: 300px;
     height: 181px;
     left: 313px;
     top: 61px;

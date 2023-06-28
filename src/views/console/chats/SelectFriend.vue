@@ -82,7 +82,10 @@ const handleSubmit = async () => {
       member_usernames: selected.value.map(e => e.username)
     })
     if (res.code === 0) {
-      proxy.$message('创建成功')
+      proxy.$message({
+        type: 'success',
+        message: '创建成功'
+      })
       proxy.$emit('before-close')
       store.updateOperateUsername(res.group_info.group_id)
       store.updateGroupInfos([...store.groupInfos, res.group_info])

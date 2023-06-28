@@ -1,7 +1,65 @@
 <template>
+  <div v-if="drawer" id="drawer" class="drawer">
+    <div style="margin-top: 10px">
+      <div v-for="(userInfo, key) in store.groupMember[username]" :key="key" style="width: 40px; text-align: center;display: inline-block; padding: 5px">
+        <img
+          alt=""
+          :width="30"
+          :height="30"
+          :src="userInfo.avatar"
+          style="cursor:pointer;"
+          @click.stop="handleShowGroupUserInfo($event, false, true, userInfo.username)"
+        >
+        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">
+          {{ userInfo.nickname }}
+        </div>
+      </div>
+      <div style="width: 40px; text-align: center;display: inline-block; padding: 5px">
+        <img style="cursor:pointer;" alt="" :width="30" :height="30" src="@/assets/img/plus.png">
+        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">
+          添加
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--  <el-drawer-->
+  <!--    v-model="drawer"-->
+  <!--    size="250px"-->
+  <!--    :with-header="false"-->
+  <!--    custom-class="drawer"-->
+  <!--    :modal="false"-->
+  <!--  >-->
+  <!--    <div style="margin-top: 10px">-->
+  <!--      <div v-for="(userInfo, key) in store.groupMember[username]" :key="key" style="width: 40px; text-align: center;display: inline-block; padding: 5px">-->
+  <!--        <img-->
+  <!--          alt=""-->
+  <!--          :width="30"-->
+  <!--          :height="30"-->
+  <!--          :src="userInfo.avatar"-->
+  <!--          style="cursor:pointer;"-->
+  <!--          @click="handleShowGroupUserInfo($event, false, true, userInfo.username)"-->
+  <!--        >-->
+  <!--        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">-->
+  <!--          {{ userInfo.nickname }}-->
+  <!--        </div>-->
+  <!--      </div>-->
+  <!--      <div style="width: 40px; text-align: center;display: inline-block; padding: 5px">-->
+  <!--        <img style="cursor:pointer;" alt="" :width="30" :height="30" src="@/assets/img/plus.png">-->
+  <!--        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">-->
+  <!--          添加-->
+  <!--        </div>-->
+  <!--      </div>-->
+  <!--    </div>-->
+  <!--  </el-drawer>-->
+
+
   <div>
     <div class="chat-top">
       {{ store.msgs[username]?.nickname }}
+      <div v-if="store.msgs[username].type === 2 " style="float: right;margin-right: 20px;cursor:pointer;" @click.stop="drawer = true">
+        <el-icon><MoreFilled /></el-icon>
+      </div>
     </div>
 
     <div id="chat-message" class="chat-message">
@@ -26,7 +84,7 @@
               <img
                 alt=""
                 style="float: right; vertical-align: middle; cursor: pointer"
-                :src="store.msgs[username].avatar"
+                :src="store.userInfo.avatar"
                 :width="32"
                 :height="32"
                 @click.stop="handleShowInfo($event, true)"
@@ -113,18 +171,37 @@
   <UserInfo ref="userInfoRef" />
 </template>
 <script setup lang="js">
-import {defineAsyncComponent, onMounted, reactive, ref, getCurrentInstance, inject, onUpdated, watch} from 'vue'
+import {
+  defineAsyncComponent,
+  onMounted,
+  reactive,
+  ref,
+  getCurrentInstance,
+  inject,
+  onUpdated,
+  watch,
+  onUnmounted
+} from 'vue'
 import emojiList from './emojis.js'
 import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
 import {userStore} from '@/store/userStore.js'
 import UserInfo from '@/components/UserInfo.vue'
 import _ from 'lodash'
+import {MoreFilled} from '@element-plus/icons-vue'
 
 const props = defineProps({
   username: String
 })
 
+const drawer = ref(false)
+
+const closeDrawer = (e) => {
+  if(e.target.id === 'drawer') {
+    return
+  }
+  drawer.value = false
+}
 const userInfoRef = ref()
 
 const store = userStore()
@@ -141,14 +218,19 @@ watch(props, () => {
 })
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('click', closeDrawer)
   document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
 })
 onUpdated(() => {
   store.updateMessages(Object.assign(store.messages, {
     [props.username]: message.value
   }))
-  window.removeEventListener('keydown', handleKeydown)
+
   document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+})
+onUnmounted(() => {
+  window.removeEventListener('click', closeDrawer)
+  window.removeEventListener('keydown', handleKeydown)
 })
 const sendMessage = _.debounce(() => {
   if (store.msgs[props.username].type === 1) {
@@ -202,6 +284,10 @@ const sendMessage = _.debounce(() => {
 
 }, 300)
 const handleKeydown = (key) => {
+}
+const handleShowGroupUserInfo = (e, left, isGroup, username) => {
+  store.updateLookUserInfo(store.groupMember[props.username][username])
+  userInfoRef.value.handleShowInfo(e, left)
 }
 const handleShowInfo = (e, left, isGroup, username) => {
   document.querySelector('html').click()
@@ -300,5 +386,18 @@ const handleShowInfo = (e, left, isGroup, username) => {
 }
 :deep(.el-textarea__inner:focus) {
   box-shadow: 0 0 0 0;
+}
+
+.drawer{
+  // .el-drawer__body{
+  //  background-color: rgb(245, 245, 245);
+  //}
+  position: absolute;
+  right: 0;
+  z-index: 100;
+  height: 100%;
+  width: 250px;
+  background-color: rgb(245, 245, 245);
+  border-left: 1px solid rgb(236 ,236 ,236);
 }
 </style>

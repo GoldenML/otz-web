@@ -3,7 +3,7 @@
     <div v-if="showInfo" class="user-info" :style="{left: left, top: top}" @click.stop>
       <div style="padding-top: 20px;display: flex; line-height: 20px">
         <div>
-          <img :src="store.userInfo.avatar" width="55" height="55" alt="">
+          <img :src="store.lookUserInfo.avatar" width="55" height="55" alt="">
         </div>
 
         <div style="margin-left: 15px;  text-align: left">

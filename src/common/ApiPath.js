@@ -15,12 +15,14 @@ const otz = {
   USER_ADD_HISTORY: getApi('add_friend_history'),
   USER_ADD_HANDLE: getApi('handle_add_friend'),
   USER_DELETE_FRIEND: getApi('delete_friend'),
-  USER_LOGOUT: getApi('loginout'),
+  USER_LOGOUT: getApi('logout'),
   WS_CONNECT: getApi('sync_notify'),
   USER_CREATE_GROUP: getApi('create_group'),
   USER_GROUP_GET_MSGS: getApi('get_group_info'),
   USER_GET_GROUP_LIST: getApi('get_user_group'),
-  USER_GROUP_GET_MEMBERS: getApi('get_group_members')
+  USER_GROUP_GET_MEMBERS: getApi('get_group_members'),
+  USER_UPLOAD_FILE: getApi('upload_file'),
+  USER_UPDATE: getApi('update_user_info')
 }
 
 export default otz

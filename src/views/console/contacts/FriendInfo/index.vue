@@ -20,10 +20,12 @@
           placement="right-start"
           :width="200"
           trigger="click"
+
           content="this is content, this is content, this is content"
         >
           <template #default>
             <div class="more-item" @click="handleDeleteFriend(data)">删除联系人</div>
+
           </template>
           <template #reference>
             <el-icon style="cursor:pointer;"><MoreFilled /></el-icon>
@@ -51,6 +53,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {MoreFilled, Smoking, UserFilled} from '@element-plus/icons-vue'
 import {userStore} from '@/store/userStore.js'
 import {inject} from 'vue'
+import {ElMessage, ElMessageBox} from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -78,13 +81,26 @@ const handleSendMsg = () => {
   })
 }
 const handleDeleteFriend = (friend) => {
-  const res = post(ApiPath.USER_DELETE_FRIEND, {
-    friend_username: friend.username
-  })
-  if (res.code === 0) {
-    globalFunc.getFriendInfos()
-    globalFunc.getUserMsg()
-  }
+  ElMessageBox.confirm(
+    '即将删除选中的联系人，并同时删除与该联系人的聊天记录',
+    '删除联系人',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      post(ApiPath.USER_DELETE_FRIEND, {
+        friend_username: friend.username
+      }).then(res => {
+        if (res.code === 0) {
+          globalFunc.getFriendInfos()
+          globalFunc.getUserMsg()
+        }
+      })
+    })
+
 }
 console.log(props.data)
 </script>

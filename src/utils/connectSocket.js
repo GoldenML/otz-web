@@ -1,7 +1,7 @@
 let client = null
 const connectSocket = (topic) => {
   const baseUrl = import.meta.env.VITE_APP_WS_URL
-  const wsUrl = `wss://im.shadowgao.com/${topic}`
+  const wsUrl = `wss://im.sotz.cc/${topic}`
   if (client) {
     console.log(client)
     return client
