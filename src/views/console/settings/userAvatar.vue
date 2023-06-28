@@ -168,7 +168,6 @@ function uploadImg() {
             message: '修改成功'
           })
           visible.value = false
-
         }
       })
     }
@@ -188,7 +187,7 @@ function compress(img) {
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.drawImage(img, 0, 0, width, height)
   // 进行压缩
-  return canvas.toDataURL('image/jpeg', 0.8)
+  return canvas.toDataURL('image/jpeg', 1)
 }
 /** 实时预览 */
 function realTime(data) {
