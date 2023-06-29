@@ -28,7 +28,7 @@
                 </el-icon>
               </div>
               <div style="display: inline-block;line-height: 20px;color: rgb(158, 158, 158);font-size: 13px">用户名：{{ userInfo.username }}</div>
-              <div style="display: inline-block;line-height: 20px;color: rgb(158, 158, 158);font-size: 13px">地区：{{ userInfo.city }}</div><br>
+              <div style="display: inline-block;line-height: 20px;color: rgb(158, 158, 158);font-size: 13px">地区：{{ area }}</div><br>
             </div>
           </div>
         </div>
@@ -69,7 +69,16 @@
   <AddFriend v-if="addFriendVisible" :data="userInfo" @close="addFriendVisible = false" />
 </template>
 <script setup lang="js">
-import {defineAsyncComponent, defineComponent, onBeforeUnmount, onMounted, onUnmounted, reactive, ref} from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  defineComponent,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref
+} from 'vue'
 import {ArrowRight, Plus, UserFilled} from '@element-plus/icons-vue'
 import { post } from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
@@ -77,6 +86,7 @@ import { getCurrentInstance } from 'vue'
 import {useRouter} from 'vue-router'
 import {userStore} from '@/store/userStore.js'
 import AddFriend from './AddFriend.vue'
+import {codeToText} from 'element-china-area-data'
 const router = useRouter()
 const { proxy } = getCurrentInstance()
 
@@ -94,7 +104,9 @@ const setActive = (val, type, idx) => {
   // router.push(`/console/contacts/${list[val].username}`)
 }
 const store = userStore()
-
+const area = computed(() => {
+  return codeToText[userInfo.value.province] && codeToText[userInfo.value.city] && codeToText[userInfo.value.district] ? `${codeToText[userInfo.value.province]}/${codeToText[userInfo.value.city]}/${codeToText[userInfo.value.district]}` : ''
+})
 /*************************************/
 onMounted(() => {
   window.addEventListener('click', resetSearchStatus)
@@ -200,13 +212,13 @@ const sendMessage = () => {
     position: absolute;
     background-color: rgb(255, 255, 255);
     z-index: 10;
-    width: 300px;
+    width: 320px;
     height: 181px;
     left: 313px;
     top: 61px;
     &_description{
       height: 100px;
-      margin: 0 30px;
+      margin: 0 20px;
       border-bottom: 1px solid rgb(243, 243, 243);
     }
     &_operate{
