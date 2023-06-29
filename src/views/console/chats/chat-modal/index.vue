@@ -127,20 +127,20 @@
         trigger="click"
       >
         <template #default>
-          <div style="color: #000000; font-size: 14px">
-            全部表情
-          </div>
-          <div v-for="(emoji, index) in emojis" :key="index" class="emoji" @click="addEmoji(emoji.emoji)">
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              :show-after="500"
-              :content="emoji.name"
-            >
-              {{ emoji.emoji }}
-            </el-tooltip>
-          </div>
-          <!--          <Picker :data="emojiIndex" :native="true" set="twitter" @select="showEmoji" />-->
+          <!--          <div style="color: #000000; font-size: 14px">-->
+          <!--            全部表情-->
+          <!--          </div>-->
+          <!--          <div v-for="(emoji, index) in emojis" :key="index" class="emoji" @click="addEmoji(emoji.emoji)">-->
+          <!--            <el-tooltip-->
+          <!--              class="box-item"-->
+          <!--              effect="dark"-->
+          <!--              :show-after="500"-->
+          <!--              :content="emoji.name"-->
+          <!--            >-->
+          <!--              {{ emoji.emoji }}-->
+          <!--            </el-tooltip>-->
+          <!--          </div>-->
+          <Picker :data="emojiIndex" :native="true" set="twitter" @select="showEmoji" />
         </template>
         <template #reference>
           <img width="30" height="30" alt="" src="@/assets/img/smile.png">

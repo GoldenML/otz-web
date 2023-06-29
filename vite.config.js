@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import viteCompression from 'vite-plugin-compression'
 import eslintPlugin from 'vite-plugin-eslint'
+const IS_PROD = ['production', 'prod'].includes(process.env.NODE_ENV)
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -36,4 +37,5 @@ export default defineConfig({
       }
     }
   },
+  sourceMap: !IS_PROD,
 })

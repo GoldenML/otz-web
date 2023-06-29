@@ -124,7 +124,7 @@ const connectWs = () => {
     }, 4000)
   }
   let heartCheck = {
-    timeout: 3000,
+    timeout: 5000,
     timeoutObj: null,
     serverTimeoutObj: null,
     start: function() {
@@ -134,14 +134,15 @@ const connectWs = () => {
       this.serverTimeoutObj && clearTimeout(this.serverTimeoutObj)
       this.timeoutObj = setTimeout(function() {
         //这里发送一个心跳，后端收到后，返回一个心跳消息，
-        ws.send(new Uint8Array([0x9]))
+        ws.send('otz_ping')
         self.serverTimeoutObj = setTimeout(function() {
           ws.close()
-        }, self.timeout)
-      }, this.timeout)
+        }, 10000)
+      }, 5000)
     }
   }
-  createWebSocket()
+  const IS_PROD = ['production', 'prod'].includes(process.env.NODE_ENV)
+  IS_PROD && createWebSocket()
 }
 const getAllGroup = () => {
   post(ApiPath.USER_GET_GROUP_LIST, {}).then(async res => {
