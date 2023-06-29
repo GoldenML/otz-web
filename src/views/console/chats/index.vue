@@ -1,34 +1,21 @@
 <template>
   <div class="chats">
     <div class="sidebar">
-      <FriendList @changeFriend="handleChangeFriend" />
+      <FriendList />
     </div>
     <div class="content">
-      <!--      <router-view></router-view>-->
-      <ChatModal v-if="store.operateUsername" :username="store.operateUsername" @updateMessage="updateMessage" />
+      <ChatModal v-if="store.operateUsername" :username="store.operateUsername" />
     </div>
   </div>
 
 </template>
 <script setup lang="js">
 import FriendList from './FriendList.vue'
-import {onMounted, ref} from 'vue'
 import ChatModal from './chat-modal/index.vue'
-import {useRoute, useRouter} from 'vue-router'
 import {userStore} from '@/store/userStore.js'
-const username = ref(null)
-const route = useRoute()
 const store = userStore()
-const updateMessage = () => {
-
-}
 </script>
 <style lang="scss" scoped>
-.card{
-  background-color: #60afcc;
-  display: flex;
-  height: 100vh;
-}
 .chats{
   display: flex;
   height: 100%;
@@ -44,6 +31,7 @@ const updateMessage = () => {
   background-color: #f0f0f0;
   display: flex;
   flex-direction: column;
+  border-right: 1px solid rgb(214, 214, 214);
 }
 .content {
   flex: 1;

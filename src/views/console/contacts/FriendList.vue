@@ -41,14 +41,14 @@
     </template>
     <template v-else>
       <div class="search-input">
-        <el-input v-model="keyword" clearable placeholder="请输入关键字" style="width: 190px;margin-right: 15px;" />
+        <el-input v-model="keyword" clearable placeholder="请输入关键字" style="width: 190px;margin-right: 10px;" />
         <el-icon style="vertical-align: middle; cursor:pointer;" @click.prevent="addFriend"><Plus /></el-icon>
       </div>
 
     </template>
 
   </div>
-  <div style="max-height: 739px; overflow-y:scroll">
+  <div style="max-height: 739px; overflow-y:auto">
     <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">新的朋友</div>
     <div class="friend__item" :class="{'friend__item--active': active === 'add_friend'}" @click="setActive('add_friend')">
       <img :width="30" :height="30" style="margin: 10px; background-color: rgb(250, 157, 59)" alt="" src="@/assets/img/add-friend.png">
@@ -163,7 +163,8 @@ const sendMessage = () => {
   line-height: 60px;
   background-color: rgb(247, 247, 247);
   .search-input{
-    border-bottom: 1px solid rgb(233, 233, 233);padding: 0 10px;
+    border-bottom: 1px solid rgb(233, 233, 233);
+    padding: 0 10px;
   }
   .no-user{
     text-align: center;

@@ -72,19 +72,23 @@ const login = async (formEl) => {
         login_type:2,
         email: loginForm.email,
         verify_code: loginForm.code
-      }).then(async (response) => {
-        if (response.code === 0) {
+      }).then(async (res) => {
+        if (res.code === 0) {
           show.value = false
           proxy.$notify({
             title: '登陆成功',
-            message: `欢迎您，${response?.user_info?.nickname}`,
+            message: `欢迎您，${res?.user_info?.nickname}`,
             showClose: true,
             type: 'success'
           })
           await router.push({
             name: 'console'
           })
-
+        } else {
+          proxy.$message({
+            type: 'error',
+            message: res.msg
+          })
         }
       })
     }
@@ -101,11 +105,11 @@ const sendVerifyCode = async (formEl) => {
     if(valid) {
 
       buttonDisabled.value = true
-      const response = await post(ApiPath.SEND_VERIFY_CODE, {
+      const res = await post(ApiPath.SEND_VERIFY_CODE, {
         email: loginForm.email
       })
       buttonDisabled.value = false
-      if (response.code === 0) {
+      if (res.code === 0) {
         proxy.$message({
           type: 'success',
           message: '发送成功'
@@ -117,6 +121,11 @@ const sendVerifyCode = async (formEl) => {
             clearInterval(interval.value)
           }
         }, 1000)
+      } else {
+        proxy.$message({
+          type: 'error',
+          message: res.msg
+        })
       }
     }
   })

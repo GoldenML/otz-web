@@ -22,38 +22,6 @@
       </div>
     </div>
   </div>
-
-  <!--  <el-drawer-->
-  <!--    v-model="drawer"-->
-  <!--    size="250px"-->
-  <!--    :with-header="false"-->
-  <!--    custom-class="drawer"-->
-  <!--    :modal="false"-->
-  <!--  >-->
-  <!--    <div style="margin-top: 10px">-->
-  <!--      <div v-for="(userInfo, key) in store.groupMember[username]" :key="key" style="width: 40px; text-align: center;display: inline-block; padding: 5px">-->
-  <!--        <img-->
-  <!--          alt=""-->
-  <!--          :width="30"-->
-  <!--          :height="30"-->
-  <!--          :src="userInfo.avatar"-->
-  <!--          style="cursor:pointer;"-->
-  <!--          @click="handleShowGroupUserInfo($event, false, true, userInfo.username)"-->
-  <!--        >-->
-  <!--        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">-->
-  <!--          {{ userInfo.nickname }}-->
-  <!--        </div>-->
-  <!--      </div>-->
-  <!--      <div style="width: 40px; text-align: center;display: inline-block; padding: 5px">-->
-  <!--        <img style="cursor:pointer;" alt="" :width="30" :height="30" src="@/assets/img/plus.png">-->
-  <!--        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">-->
-  <!--          添加-->
-  <!--        </div>-->
-  <!--      </div>-->
-  <!--    </div>-->
-  <!--  </el-drawer>-->
-
-
   <div>
     <div class="chat-top">
       {{ store.msgs[username]?.nickname }}
@@ -75,12 +43,22 @@
                 :height="32"
                 @click.stop="handleShowInfo($event, false)"
               >
-              <div class="chat-message-left__box">{{ msg.text_msg.text }}</div>
+              <div v-if="msg.msg_type === 2" class="chat-message-left__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-left__box">
+                {{ msg.text_msg?.text }}
+              </div>
             </div>
           </template>
           <template v-else>
             <div class="chat-message-right">
-              <div class="chat-message-right__box">{{ msg.text_msg.text }}</div>
+              <div v-if="msg.msg_type === 2" class="chat-message-right__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-right__box">
+                {{ msg.text_msg?.text }}
+              </div>
               <img
                 alt=""
                 style="float: right; vertical-align: middle; cursor: pointer"
@@ -96,12 +74,17 @@
       <div v-else-if="store.msgs[username].type === 2">
         <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
           <template v-if="msg.isSystemMsg">
-            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)"> {{ msg.text_msg.text }}</div>
+            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)"> {{ msg.text_msg?.text }}</div>
           </template>
           <template v-else-if="msg.from_username === store.userInfo.username">
             <div class="chat-message-right">
 
-              <div class="chat-message-right__box">{{ msg.text_msg.text }}</div>
+              <div v-if="msg.msg_type === 2" class="chat-message-right__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-right__box">
+                {{ msg.text_msg?.text }}
+              </div>
               <img
                 alt=""
                 style="float: right; vertical-align: middle; cursor: pointer"
@@ -124,7 +107,12 @@
                 @click.stop="handleShowInfo($event, false, true, msg.from_username)"
               >
               <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)">{{ store.groupMember[username][msg.from_username].nickname }}</div>
-              <div class="chat-message-left__box">{{ msg.text_msg.text }}</div>
+              <div v-if="msg.msg_type === 2" class="chat-message-left__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-left__box">
+                {{ msg.text_msg?.text }}
+              </div>
             </div>
           </template>
         </div>
@@ -139,7 +127,7 @@
         trigger="click"
       >
         <template #default>
-          <div style="color: #000000; font-size: 16px">
+          <div style="color: #000000; font-size: 14px">
             全部表情
           </div>
           <div v-for="(emoji, index) in emojis" :key="index" class="emoji" @click="addEmoji(emoji.emoji)">
@@ -152,6 +140,7 @@
               {{ emoji.emoji }}
             </el-tooltip>
           </div>
+          <!--          <Picker :data="emojiIndex" :native="true" set="twitter" @select="showEmoji" />-->
         </template>
         <template #reference>
           <img width="30" height="30" alt="" src="@/assets/img/smile.png">
@@ -162,10 +151,27 @@
     </div>
     <div class="chat-content" />
     <div class="chat-input">
-      <el-input v-model="message" :autosize="{ minRows: 7, maxRows: 7 }" resize="none" type="textarea" @keydown.enter.exact.prevent="sendMessage" />
+      <el-input
+        id="edit"
+        v-model="message"
+        :autosize="{ minRows: 7, maxRows: 7 }"
+        resize="none"
+        type="textarea"
+        @keydown.enter.exact.prevent="sendMessage"
+      />
     </div>
     <div style="text-align: right; padding-right: 20px; margin-top:  13px; position: absolute; bottom: 15px; right: 20px">
-      <el-button :disabled="!Boolean(message)" class="btn-send" @click="sendMessage">发送</el-button>
+      <el-button ref="buttonRef" class="btn-send" @click="sendMessage">发送</el-button>
+      <el-popover
+        ref="popoverRef"
+        :virtual-ref="buttonRef"
+        trigger="click"
+        virtual-triggering
+        :auto-close="2000"
+        placement="top-start"
+      >
+        <span> 不能发送空白消息 </span>
+      </el-popover>
     </div>
   </div>
   <UserInfo ref="userInfoRef" />
@@ -180,7 +186,7 @@ import {
   inject,
   onUpdated,
   watch,
-  onUnmounted
+  onUnmounted, computed, unref
 } from 'vue'
 import emojiList from './emojis.js'
 import {post} from '@/utils/request.js'
@@ -189,102 +195,162 @@ import {userStore} from '@/store/userStore.js'
 import UserInfo from '@/components/UserInfo.vue'
 import _ from 'lodash'
 import {MoreFilled} from '@element-plus/icons-vue'
+import data from 'emoji-mart-vue-fast/data/all.json'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
+import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src'
 
+const emojiIndex = new EmojiIndex(data)
+const buttonRef = ref()
+const popoverRef = ref()
+const onClickOutside = () => {
+  unref(popoverRef).popperRef?.delayHide?.()
+}
+const showEmoji = (emoji) => {
+  message.value += emoji.native
+}
+const store = userStore()
 const props = defineProps({
   username: String
 })
+watch(props, () => {
+  message.value = store.messages[props.username] || ''
+})
+const handlePaste = (e) => {
+  e.preventDefault()
+  let focusedElement = document.activeElement
+  if(focusedElement?.tagName === 'TEXTAREA') {
+    if(e.clipboardData.items.length > 0) {
+      for (let i = 0; i < e.clipboardData.items.length; i++) {
+        const item = e.clipboardData.items[i]
+        if (item.kind === 'file' && item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile()
+          let reader = new FileReader()
+          reader.onload = (event) => {
+            post(ApiPath.USER_UPLOAD_FILE, {
+              file_name: file.name,
+              file_data: event.target.result.replace(/^data:image\/\w+;base64,/, '')
+            }).then(res => {
+              if (res.code === 0) {
+                post(ApiPath.USER_SEND_MSG, {
+                  msg: {
+                    msg_type: 2,
+                    from_type: 1,
+                    to_type: store.msgs[props.username].type,
+                    to_username: props.username,
+                    image_msg: {
+                      image_url: res.absolute_file_path
+                    }
+                  }
+                }).then(res => {
+                  if (res.code === 0) {
+                    globalFunc.getUserMsg().then(() => {
+                      proxy.$nextTick(() => {
+                        document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+                      })
+                    })
+                  } else {
+                    proxy.$message({type: 'error', message: res.msg})
+                  }
+                })
+              }
+            })
+          }
+          reader.readAsDataURL(file)
+        }
+      }
+    }
+  }
+}
+onMounted(() => {
+  window.addEventListener('paste',handlePaste)
+  window.addEventListener('click', closeDrawer)
+  waitForAllImagesToLoad().then(() => {
+    document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+  })
+
+})
+const waitForAllImagesToLoad = () => {
+  return new Promise((resolve) => {
+    const images = Array.from(document.getElementsByTagName('img'))
+    const totalImages = images.length
+    let loadedImages = 0
+
+    const handleImageLoad = () => {
+      loadedImages++
+      if (loadedImages === totalImages) {
+        resolve()
+      }
+    }
+
+    images.forEach((img) => {
+      if (img.complete) {
+        handleImageLoad()
+      } else {
+        img.addEventListener('load', handleImageLoad)
+      }
+    })
+  })
+}
+
+onUpdated(() => {
+  store.updateMessages(Object.assign(store.messages, {
+    [props.username]: message.value
+  }))
+
+  waitForAllImagesToLoad().then(() => {
+    document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+  })
+})
+onUnmounted(() => {
+  window.removeEventListener('paste',handlePaste)
+  window.removeEventListener('click', closeDrawer)
+})
 
 const drawer = ref(false)
-
 const closeDrawer = (e) => {
   if(e.target.id === 'drawer') {
     return
   }
   drawer.value = false
 }
-const userInfoRef = ref()
 
-const store = userStore()
+
 const { proxy } = getCurrentInstance()
 const message = ref('')
 const emojis = reactive(emojiList)
 const addEmoji = (emoji) => {
   message.value += emoji
 }
+
 const globalFunc = inject('globalFunc')
-
-watch(props, () => {
-  message.value = store.messages[props.username] || ''
-})
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-  window.addEventListener('click', closeDrawer)
-  document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
-})
-onUpdated(() => {
-  store.updateMessages(Object.assign(store.messages, {
-    [props.username]: message.value
-  }))
-
-  document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
-})
-onUnmounted(() => {
-  window.removeEventListener('click', closeDrawer)
-  window.removeEventListener('keydown', handleKeydown)
-})
 const sendMessage = _.debounce(() => {
-  if (store.msgs[props.username].type === 1) {
-    post(ApiPath.USER_SEND_MSG, {
-      msg: {
-        msg_type: 1,
-        from_type: 1,
-        to_type: 1,
-        to_username: props.username,
-        text_msg: {
-          text: message.value
-        },
-      }
-    }).then(res => {
-      if (res.code === 0) {
-        message.value = ''
-        globalFunc.getUserMsg().then(() => {
-          proxy.$nextTick(() => {
-            document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
-          })
-        })
-      } else {
-        proxy.$message({type: 'error', message: res.msg})
-      }
-
-    })
-  } else if(store.msgs[props.username].type === 2) {
-    post(ApiPath.USER_SEND_MSG, {
-      msg: {
-        msg_type: 1,
-        from_type: 1,
-        to_type: 2,
-        to_username: props.username,
-        text_msg: {
-          text: message.value
-        },
-      }
-    }).then(res => {
-      if (res.code === 0) {
-        message.value = ''
-        globalFunc.getUserMsg().then(() => {
-          proxy.$nextTick(() => {
-            document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
-          })
-        })
-      } else {
-        proxy.$message({type: 'error', message: res.msg})
-      }
-    })
+  if (!message.value) {
+    return
   }
-
+  post(ApiPath.USER_SEND_MSG, {
+    msg: {
+      msg_type: 1,
+      from_type: 1,
+      to_type: store.msgs[props.username].type,
+      to_username: props.username,
+      text_msg: {
+        text: message.value
+      },
+      image_msg: {
+        image_url: ''
+      }
+    }
+  }).then(res => {
+    if (res.code === 0) {
+      message.value = ''
+      globalFunc.getUserMsg()
+    } else {
+      proxy.$message({type: 'error', message: res.msg})
+    }
+  })
 }, 300)
-const handleKeydown = (key) => {
-}
+
+const userInfoRef = ref()
 const handleShowGroupUserInfo = (e, left, isGroup, username) => {
   store.updateLookUserInfo(store.groupMember[props.username][username])
   userInfoRef.value.handleShowInfo(e, left)
@@ -299,7 +365,6 @@ const handleShowInfo = (e, left, isGroup, username) => {
     const idx = store.friendInfos.findIndex(e => e.username === props.username)
     store.updateLookUserInfo(store.friendInfos[idx])
   }
-
   userInfoRef.value.handleShowInfo(e, left)
 }
 
@@ -320,6 +385,17 @@ const handleShowInfo = (e, left, isGroup, username) => {
     margin-top: 10px;
     margin-left: 30px;
     padding-bottom: 10px;
+    &__img{
+      text-align: left;
+      display: inline-block;
+      line-height: 32px;
+      min-height: 32px;
+      margin-left: 5px;
+      padding:0 10px;
+      border-radius:5px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
     &__box{
       text-align: left;
       display: inline-block;
@@ -338,6 +414,17 @@ const handleShowInfo = (e, left, isGroup, username) => {
     margin-top: 10px;
     margin-right: 30px;
     padding-bottom: 10px;
+    &__img{
+      text-align: left;
+      display: inline-block;
+      line-height: 32px;
+      min-height: 32px;
+      margin-right: 5px;
+      padding:0 10px;
+      border-radius:5px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
     &__box{
       text-align: left;
       display: inline-block;

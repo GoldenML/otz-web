@@ -51,9 +51,9 @@ const props = defineProps({
   title: String,
   width: String
 })
-defineEmits(['before-close', 'scroll'])
+const emits = defineEmits(['before-close', 'scroll'])
 const handleCancel = () => {
-  proxy.$emit('before-close')
+  emits('before-close')
 }
 const handleRemove = (username) => {
   const idx = selected.value.findIndex(v => v.username === username)
@@ -76,7 +76,7 @@ const handleSubmit = async () => {
       }))
     }
     store.updateOperateUsername(user.username)
-    proxy.$emit('before-close')
+    emits('before-close')
   } else {
     const res = await post(ApiPath.USER_CREATE_GROUP, {
       member_usernames: selected.value.map(e => e.username)
@@ -86,7 +86,7 @@ const handleSubmit = async () => {
         type: 'success',
         message: '创建成功'
       })
-      proxy.$emit('before-close')
+      emits('before-close')
       store.updateOperateUsername(res.group_info.group_id)
       store.updateGroupInfos([...store.groupInfos, res.group_info])
 
@@ -101,7 +101,7 @@ const handleSubmit = async () => {
       })
 
       globalFunc.getUserMsg()
-      proxy.$emit('scroll')
+      emits('scroll')
     }
   }
 

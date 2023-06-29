@@ -1,9 +1,9 @@
 <template>
-  <div style="line-height: 60px;padding: 0 10px">
-    <el-input placeholder="请输入关键字" style="width: 200px;margin-right: 10px;" />
+  <div style="line-height: 60px;padding: 0 10px;background-color: rgb(247, 247, 247)">
+    <el-input placeholder="请输入关键字" style="width: 190px;margin-right: 10px;" />
     <el-icon style="vertical-align: middle;cursor:pointer;" @click="handleShowSelectFriend"><Plus /></el-icon>
   </div>
-  <div style="max-height: 739px; overflow-y: scroll">
+  <div style="max-height: 739px; overflow-y: auto">
     <div v-for="(item, key) in store.msgs" :key="key" class="friend__item" :class="{'friend__item--active': store.operateUsername === key}" @click="setActive(key)">
       <div style="margin: 12px">
         <el-badge is-dot :hidden="!store.badges[key]">

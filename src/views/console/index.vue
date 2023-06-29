@@ -48,10 +48,10 @@ onMounted(() => {
   ]).then(() => {
     getAddHistory()
     getUserMsg()
-    // setInterval(() => {
-    //   getUserMsg()
-    //   getAddHistory()
-    // }, 10000)
+    setInterval(() => {
+      getUserMsg()
+      getAddHistory()
+    }, 10000)
   })
 })
 onUnmounted(() => {
@@ -63,38 +63,85 @@ provide('globalFunc', {
   getAllGroup: () => getAllGroup()
 })
 const connectWs = () => {
+  let lockReconnect = false
+  let tt
   const route = useRoute()
-  const socket = inject('socket')
-  const ws = socket('otz/im/web_proxy/sync_notify')
-  ws.onopen = () => {
-    console.log('websocket已连接')
-  }
-  ws.onmessage = ({ data }) => {
-    console.log('websocket消息：', data)
-
-    switch (JSON.parse(data).notify_type) {
-    case 1:
-      if(route.matched[1].path === '/console/chats') {
-        store.updateContactBadge(true)
-      }
-      getAddHistory()
-      break
-    case 2:
-      if(route.matched[1].path === '/console/contacts') {
-        store.updateChatBadge(true)
-      }
-      getUserMsg()
-      break
-    default:
-      break
+  let timer = null
+  let ws
+  let wsUrl = 'wss://im.sotz.cc/otz/im/web_proxy/sync_notify'
+  function createWebSocket() {
+    try {
+      ws = new WebSocket(wsUrl)
+      init()
+    } catch(e) {
+      reconnect(wsUrl)
     }
   }
-  ws.onclose = () => {
-    setTimeout(() => {
-      connectWs()
-    }, 10000)
-    console.log('websocket连接已关闭')
+  function init() {
+    ws.onopen = function () {
+      //心跳检测重置
+      heartCheck.start()
+    }
+    ws.onmessage = ({ data }) => {
+      heartCheck.start()
+      switch (JSON.parse(data).notify_type) {
+      case 1:
+        if(route.matched[1].path === '/console/chats') {
+          store.updateContactBadge(true)
+        }
+        getAddHistory()
+        break
+      case 2:
+        if(route.matched[1].path === '/console/contacts') {
+          store.updateChatBadge(true)
+        }
+        getUserMsg()
+        break
+      default:
+        break
+      }
+    }
+    ws.onclose = function () {
+      console.log('ws已关闭')
+      reconnect(wsUrl)
+    }
+    ws.onerror = function() {
+      console.log('ws发生异常')
+      reconnect(wsUrl)
+    }
+
   }
+  function reconnect(url) {
+    if(lockReconnect) {
+      return
+    }
+    lockReconnect = true
+    //没连接上会一直重连，设置延迟避免请求过多
+    tt && clearTimeout(tt)
+    tt = setTimeout(function () {
+      createWebSocket(url)
+      lockReconnect = false
+    }, 4000)
+  }
+  let heartCheck = {
+    timeout: 3000,
+    timeoutObj: null,
+    serverTimeoutObj: null,
+    start: function() {
+      let self = this
+      console.log('ws ===>', ws)
+      this.timeoutObj && clearTimeout(this.timeoutObj)
+      this.serverTimeoutObj && clearTimeout(this.serverTimeoutObj)
+      this.timeoutObj = setTimeout(function() {
+        //这里发送一个心跳，后端收到后，返回一个心跳消息，
+        ws.send(new Uint8Array([0x9]))
+        self.serverTimeoutObj = setTimeout(function() {
+          ws.close()
+        }, self.timeout)
+      }, this.timeout)
+    }
+  }
+  createWebSocket()
 }
 const getAllGroup = () => {
   post(ApiPath.USER_GET_GROUP_LIST, {}).then(async res => {
@@ -137,10 +184,6 @@ const getUserMsg = async () => {
     sequence: store.sequence
   })
   if(res.code === 0) {
-    const obj = _.cloneDeep(store.msgs) || {}
-    if (res.msgs.length > 0) {
-      store.updateSequence(Number(res.msgs[res.msgs.length - 1].sequence))
-    }
     const newMessage = res.msgs.map(e => {
       if (e.from_type === 1 && e.to_type === 1) {
         if (userInfo.username === e.from_username) {
@@ -156,99 +199,103 @@ const getUserMsg = async () => {
         badges[v] = true
       }
     })
-    store.updateBadges(Object.assign(store.badges, badges))
-    res.msgs?.forEach(e => {
-      if (e.from_type === 1 && e.to_type === 1) {
-        if (userInfo.username === e.from_username) {
-          const idx = friendInfos.findIndex(user => user.username === e.to_username)
-          if (idx > -1) {
-            const friend = friendInfos[idx]
-            if (!obj[friend.username]) {
-              obj[friend.username] = {
-                type: 1,
-                nickname: friend.nickname,
-                avatar: friend.avatar,
-                lastMsg: e.text_msg.text,
-                username: friend.username,
-                msgList: [e],
-              }
-            } else if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
-              obj[friend.username].lastMsg = e.text_msg.text
-              obj[friend.username].msgList.push(e)
-            }
-          }
-
-        } else {
-          const idx = friendInfos.findIndex(user => user.username === e.from_username)
-          if (idx > -1) {
-            const friend = friendInfos[idx]
-            if (!obj[friend.username]) {
-              obj[friend.username] = {
-                type: 1,
-                nickname: friend.nickname,
-                avatar: friend.avatar,
-                lastMsg: e.text_msg.text,
-                username: friend.username,
-                msgList: [e],
-              }
-            } else {
-              if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
-                obj[friend.username].lastMsg = e.text_msg.text
+    Object.assign(store.badges, badges)
+    if(res.msgs?.length > 0) {
+      store.updateSequence(Number(res.msgs[res.msgs.length - 1].sequence))
+      const obj = _.cloneDeep(store.msgs) || {}
+      res.msgs.forEach(e => {
+        if (e.from_type === 1 && e.to_type === 1) {
+          if (userInfo.username === e.from_username) {
+            const idx = friendInfos.findIndex(user => user.username === e.to_username)
+            if (idx > -1) {
+              const friend = friendInfos[idx]
+              if (!obj[friend.username]) {
+                obj[friend.username] = {
+                  type: 1,
+                  nickname: friend.nickname,
+                  avatar: friend.avatar,
+                  lastMsg: e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : '',
+                  username: friend.username,
+                  msgList: [e],
+                }
+              } else if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
+                obj[friend.username].lastMsg = e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : ''
                 obj[friend.username].msgList.push(e)
               }
             }
-          }
-        }
-      } else if(e.from_type === 1 && e.to_type === 2) {
 
-        const idx = store.groupInfos.findIndex(v => v.group_id === e.to_username)
-        if (idx > -1) {
-          const groupInfo = store.groupInfos[idx]
-          if(!obj[e.to_username]) {
-            obj[e.to_username] = {
-              type: 2,
-              nickname: groupInfo.group_name,
-              avatar: groupInfo.group_avatar,
-              lastUsername: e.from_username,
-              lastMsg: e.text_msg.text,
-              username: e.group_id,
-              msgList: [e],
+          } else {
+            const idx = friendInfos.findIndex(user => user.username === e.from_username)
+            if (idx > -1) {
+              const friend = friendInfos[idx]
+              if (!obj[friend.username]) {
+                obj[friend.username] = {
+                  type: 1,
+                  nickname: friend.nickname,
+                  avatar: friend.avatar,
+                  lastMsg: e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : '',
+                  username: friend.username,
+                  msgList: [e],
+                }
+              } else {
+                if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
+                  obj[friend.username].lastMsg = e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : ''
+                  obj[friend.username].msgList.push(e)
+                }
+              }
+            }
+          }
+        } else if(e.from_type === 1 && e.to_type === 2) {
+
+          const idx = store.groupInfos.findIndex(v => v.group_id === e.to_username)
+          if (idx > -1) {
+            const groupInfo = store.groupInfos[idx]
+            if(!obj[e.to_username]) {
+              obj[e.to_username] = {
+                type: 2,
+                nickname: groupInfo.group_name,
+                avatar: groupInfo.group_avatar,
+                lastUsername: e.from_username,
+                lastMsg:e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : '',
+                username: e.group_id,
+                msgList: [e],
+              }
+            } else {
+              if(obj[e.to_username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
+                obj[e.to_username].lastUsername = e.from_username
+                obj[e.to_username].lastMsg = e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : ''
+                obj[e.to_username].msgList.push(e)
+              }
+            }
+          }
+
+        } else if(e.from_type === 4 && e.to_type === 2) {
+          const idx = store.groupInfos.findIndex(v => v.group_id === e.to_username)
+          if (idx > -1) {
+            const groupInfo = store.groupInfos[idx]
+            if (!obj[e.to_username]) {
+              obj[e.to_username] = {
+                type: 2,
+                nickname: groupInfo.group_name,
+                avatar: groupInfo.group_avatar,
+                lastUsername: e.from_username,
+                lastMsg:e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : '',
+                username: e.group_id,
+                msgList: [{...e, isSystemMsg: true,}],
+              }
             }
           } else {
             if(obj[e.to_username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
               obj[e.to_username].lastUsername = e.from_username
-              obj[e.to_username].lastMsg = e.text_msg.text
-              obj[e.to_username].msgList.push(e)
+              obj[e.to_username].lastMsg = e.msg_type === 1 ? e.text_msg.text : e.msg_type === 2 ? '[图片]' : ''
+              obj[e.to_username].msgList.push({...e, isSystemMsg: true,})
             }
           }
         }
+      })
+      store.updateMsgs(obj)
+    }
 
-      } else if(e.from_type === 4 && e.to_type === 2) {
-        const idx = store.groupInfos.findIndex(v => v.group_id === e.to_username)
-        if (idx > -1) {
-          const groupInfo = store.groupInfos[idx]
-          if (!obj[e.to_username]) {
-            obj[e.to_username] = {
-              type: 2,
-              nickname: groupInfo.group_name,
-              avatar: groupInfo.group_avatar,
-              lastUsername: e.from_username,
-              lastMsg: e.text_msg.text,
-              username: e.group_id,
-              msgList: [{...e, isSystemMsg: true,}],
-            }
-          }
-        } else {
-          if(obj[e.to_username].msgList.findIndex(v => String(v.sequence) === String(e.sequence)) === -1) {
-            obj[e.to_username].lastUsername = e.from_username
-            obj[e.to_username].lastMsg = e.text_msg.text
-            obj[e.to_username].msgList.push({...e, isSystemMsg: true,})
-          }
-        }
-      }
-    })
-
-    store.updateMsgs(obj)
   }
 }
 </script>
@@ -275,6 +322,7 @@ const getUserMsg = async () => {
   flex-direction: column;
 }
 .content {
+  background-color: rgb(245, 245, 245);
   flex: 1;
 }
 </style>
