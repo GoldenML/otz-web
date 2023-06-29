@@ -126,7 +126,7 @@ const searchUser = () => {
     if (response.code === 0) {
       searchStatus.value = 1
       userInfo.value = response.user_info
-      if (store.friendInfos.indexOf(e => e.username === response.user_info.username) > -1) {
+      if (store.friendInfos.findIndex(e => e.username === userInfo.value.username) > -1) {
         existFriend.value = true
       }
     } else {

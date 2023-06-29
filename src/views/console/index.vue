@@ -60,7 +60,8 @@ onUnmounted(() => {
 provide('globalFunc', {
   getUserMsg: async () => getUserMsg(),
   getFriendInfos: async () => getFriendInfos(),
-  getAllGroup: () => getAllGroup()
+  getAllGroup: () => getAllGroup(),
+  getAddHistory: () => getAddHistory()
 })
 const connectWs = () => {
   let lockReconnect = false
@@ -83,7 +84,11 @@ const connectWs = () => {
       heartCheck.start()
     }
     ws.onmessage = ({ data }) => {
-      heartCheck.start()
+      if (data === 'otz_pong') {
+        heartCheck.start()
+        return
+      }
+
       switch (JSON.parse(data).notify_type) {
       case 1:
         if(route.matched[1].path === '/console/chats') {
@@ -137,8 +142,8 @@ const connectWs = () => {
         ws.send('otz_ping')
         self.serverTimeoutObj = setTimeout(function() {
           ws.close()
-        }, 10000)
-      }, 5000)
+        }, self.timeout)
+      }, this.timeout)
     }
   }
   const IS_PROD = ['production', 'prod'].includes(process.env.NODE_ENV)

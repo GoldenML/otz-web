@@ -164,6 +164,7 @@
       <el-button ref="buttonRef" class="btn-send" @click="sendMessage">发送</el-button>
       <el-popover
         ref="popoverRef"
+        :visible="visible"
         :virtual-ref="buttonRef"
         trigger="click"
         virtual-triggering
@@ -205,6 +206,7 @@ const popoverRef = ref()
 const onClickOutside = () => {
   unref(popoverRef).popperRef?.delayHide?.()
 }
+const visible = ref(false)
 const showEmoji = (emoji) => {
   message.value += emoji.native
 }
@@ -323,6 +325,10 @@ const addEmoji = (emoji) => {
 const globalFunc = inject('globalFunc')
 const sendMessage = _.debounce(() => {
   if (!message.value) {
+    visible.value = true
+    setTimeout(() => {
+      visible.value = false
+    }, 2000)
     return
   }
   post(ApiPath.USER_SEND_MSG, {
@@ -395,6 +401,7 @@ const handleShowInfo = (e, left, isGroup, username) => {
       white-space: pre-wrap;
     }
     &__box{
+      max-width: 500px;
       text-align: left;
       display: inline-block;
       line-height: 32px;
@@ -424,6 +431,7 @@ const handleShowInfo = (e, left, isGroup, username) => {
       white-space: pre-wrap;
     }
     &__box{
+      max-width: 500px;
       text-align: left;
       display: inline-block;
       line-height: 32px;

@@ -11,7 +11,7 @@
           </el-icon>
         </div>
         <div style="font-size: 12px">用户名：{{ data.username }}</div>
-        <div style="font-size: 12px">地区：{{ data.city }}</div>
+        <div style="font-size: 12px">地区：{{ area }}</div>
 
       </div>
       <div style="position: absolute; right: 0">
@@ -52,13 +52,18 @@ import ApiPath from '@/common/ApiPath.js'
 import {useRoute, useRouter} from 'vue-router'
 import {MoreFilled, Smoking, UserFilled} from '@element-plus/icons-vue'
 import {userStore} from '@/store/userStore.js'
-import {inject} from 'vue'
+import {computed, inject} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
+import {codeToText} from 'element-china-area-data'
+
 
 const route = useRoute()
 const router = useRouter()
 const props = defineProps({
   data: Object
+})
+const area = computed(() => {
+  return codeToText[props.data.province] && codeToText[props.data.city] && codeToText[props.data.district] ? `${codeToText[props.data.province]}/${codeToText[props.data.city]}/${codeToText[props.data.district]}` : ''
 })
 const globalFunc = inject('globalFunc')
 const store = userStore()

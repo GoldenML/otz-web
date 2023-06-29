@@ -44,6 +44,7 @@ const acceptFriend = async (v) => {
   })
   if (res.code === 0) {
     globalFunc.getFriendInfos()
+    globalFunc.getAddHistory()
     globalFunc.getUserMsg()
   }
 }
