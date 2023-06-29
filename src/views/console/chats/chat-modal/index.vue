@@ -216,7 +216,6 @@ watch(props, () => {
   message.value = store.messages[props.username] || ''
 })
 const handlePaste = (e) => {
-  e.preventDefault()
   let focusedElement = document.activeElement
   if(focusedElement?.tagName === 'TEXTAREA') {
     if(e.clipboardData.items.length > 0) {
@@ -267,7 +266,6 @@ onMounted(() => {
   waitForAllImagesToLoad().then(() => {
     document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
   })
-
 })
 const waitForAllImagesToLoad = () => {
   return new Promise((resolve) => {
