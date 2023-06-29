@@ -294,6 +294,7 @@ const getUserMsg = async () => {
         }
       })
       store.updateMsgs(obj)
+      getUserMsg()
     }
 
   }
