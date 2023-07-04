@@ -50,17 +50,17 @@
   </div>
   <div style="max-height: 739px; overflow-y:auto">
     <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">新的朋友</div>
-    <div class="friend__item" :class="{'friend__item--active': active === 'add_friend'}" @click="setActive('add_friend')">
+    <div class="friend__item" :class="{'friend__item--active': active === 'new_friend'}" @click="setActive('new_friend', 'new_friend')">
       <img :width="30" :height="30" style="margin: 10px; background-color: rgb(250, 157, 59)" alt="" src="@/assets/img/add-friend.png">
       <div style="display: inline-block; position: absolute; top: 50%;transform:translate(0, -50%); margin-left: 5px">新的朋友</div>
     </div>
     <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部群组</div>
-    <div v-for="(item, index) in store.groupInfos" :key="item.group_id" class="friend__item" :class="{'friend__item--active': active === item.group_id}" @click="setActive(item.group_id, 'group', index)">
+    <div v-for="(item, index) in store.groupInfos" :key="item.group_id" class="friend__item" :class="{'friend__item--active': active === item.group_id}" @click="setActive('group', item.group_id, index)">
       <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.group_avatar">
       <div style="display: inline-block; position: absolute; top: 50%;transform:translate(0, -50%); margin-left: 5px">{{ item.group_name }}</div>
     </div>
     <div style="font-size: 14px; color: rgb(153, 153, 153); margin: 5px 10px">全部朋友</div>
-    <div v-for="(item, index) in store.friendInfos" :key="item.username" class="friend__item" :class="{'friend__item--active': active === item.username}" @click="setActive(item.username, 'friend', index)">
+    <div v-for="(item, index) in store.friendInfos" :key="item.username" class="friend__item" :class="{'friend__item--active': active === item.username}" @click="setActive( 'friend',item.username, index)">
 
       <img :width="30" :height="30" style="margin: 10px" alt="" :src="item.avatar">
       <div style="display: inline-block; position: absolute; top: 50%;transform:translate(0, -50%); margin-left: 5px">{{ item.nickname }}</div>
@@ -85,7 +85,7 @@ import ApiPath from '@/common/ApiPath.js'
 import { getCurrentInstance } from 'vue'
 import {useRouter} from 'vue-router'
 import {userStore} from '@/store/userStore.js'
-import AddFriend from './AddFriend.vue'
+import AddFriend from '@/components/AddFriend.vue'
 import {codeToText} from 'element-china-area-data'
 const router = useRouter()
 const { proxy } = getCurrentInstance()
@@ -93,15 +93,14 @@ const { proxy } = getCurrentInstance()
 const searchText = ref('')
 const keyword = ref('')
 
-defineEmits(['changeFriend', 'handleShowNewFriend'])
+const emits = defineEmits(['handleChange'])
 
 const addFriendVisible = ref(null)
 // 当前选中的用户
-const active = ref(-1)
-const setActive = (val, type, idx) => {
+const active = ref('')
+const setActive = (type, val, idx) => {
   active.value = val
-  proxy.$emit('changeFriend', val, type, idx)
-  // router.push(`/console/contacts/${list[val].username}`)
+  emits('handleChange', type, val, idx)
 }
 const store = userStore()
 const area = computed(() => {

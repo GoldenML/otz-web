@@ -1,13 +1,13 @@
 <template>
   <div class="contacts">
     <div class="sidebar">
-      <FriendList @changeFriend="handleChangeFriend" @handleShowNewFriend="handleShowNewFriend" />
+      <FriendList @handleChange="handleChangeFriend" />
     </div>
     <div class="content">
       <!--      <router-view></router-view>-->
-      <FriendInfo v-if="friendInfo" :data="friendInfo" />
-      <NewFriend v-if="showNewFriend" />
-      <GroupInfo v-if="groupInfo" :group-id="groupInfo.group_id" />
+      <FriendInfo v-if="identity === 'friend'" :data="friendInfo" />
+      <NewFriend v-else-if="identity === 'new_friend'" />
+      <GroupInfo v-else-if="identity === 'group'" :group-id="groupInfo.group_id" :group-name="groupInfo.group_name" />
     </div>
   </div>
 
@@ -24,19 +24,15 @@ const friendInfo = ref(null)
 const showNewFriend = ref(false)
 const store = userStore()
 const groupInfo = ref(null)
-const handleChangeFriend = (val, type, idx) => {
-  if (val === 'add_friend') {
-    friendInfo.value = null
+const identity = ref('')
+const handleChangeFriend = (type, val, idx) => {
+  identity.value = type
+  if (type === 'new_friend') {
     showNewFriend.value = true
-    groupInfo.value = null
   } else if(type === 'friend') {
     friendInfo.value = store.friendInfos[idx]
-    showNewFriend.value = false
-    groupInfo.value = null
-  } else {
+  } else if(type === 'group') {
     groupInfo.value = store.groupInfos[idx]
-    showNewFriend.value = false
-    friendInfo.value = null
   }
 }
 </script>

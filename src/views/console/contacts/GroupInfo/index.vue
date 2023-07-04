@@ -1,7 +1,7 @@
 <template>
   <div style="position:relative;height: 100%">
     <div class="group-info-top">
-      群聊
+      {{ groupName }}（{{ members.length }}）
     </div>
     <div style="margin: 10px 50px;max-height: 600px; overflow: scroll">
       <div v-for="item in members" :key="item.username" style="float: left; padding: 0 10px">
@@ -34,9 +34,10 @@ import UserInfo from '@/components/UserInfo.vue'
 const userInfoRef = ref()
 
 const props = defineProps({
-  groupId: String
+  groupId: String,
+  groupName: String
 })
-const members = ref(null)
+const members = ref([])
 onMounted(async () => {
   const res = await post(ApiPath.USER_GROUP_GET_MEMBERS, {
     group_id: props.groupId

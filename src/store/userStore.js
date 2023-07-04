@@ -14,7 +14,8 @@ export const userStore = defineStore('user', {
     groupMember:{},
     chatBadge: false,
     contactBadge: false,
-    badges: {}
+    badges: {},
+    cacheUser: {}
   }),
   getters: {
 
@@ -58,6 +59,9 @@ export const userStore = defineStore('user', {
     },
     updateBadges(badges) {
       this.badges = badges
+    },
+    updateCacheUser(cacheUser) {
+      this.cacheUser = cacheUser
     }
   }
 })

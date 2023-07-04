@@ -45,6 +45,11 @@ const handleSubmit = () => {
         message: '发送成功'
       })
       proxy.$emit('close')
+    } else {
+      proxy.$message({
+        type: 'error',
+        message: res.msg
+      })
     }
   })
 }

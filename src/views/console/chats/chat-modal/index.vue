@@ -1,39 +1,20 @@
 <template>
-  <div v-if="drawer" id="drawer" class="drawer">
-    <div style="margin-top: 10px">
-      <div v-for="(userInfo, key) in store.groupMember[username]" :key="key" style="width: 40px; text-align: center;display: inline-block; padding: 5px">
-        <img
-          alt=""
-          :width="30"
-          :height="30"
-          :src="userInfo.avatar"
-          style="cursor:pointer;"
-          @click.stop="handleShowGroupUserInfo($event, false, true, userInfo.username)"
-        >
-        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">
-          {{ userInfo.nickname }}
-        </div>
-      </div>
-      <div style="width: 40px; text-align: center;display: inline-block; padding: 5px">
-        <img style="cursor:pointer;" alt="" :width="30" :height="30" src="@/assets/img/plus.png">
-        <div style="font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden">
-          添加
-        </div>
-      </div>
-    </div>
+  <div v-if="drawerVisible" id="drawer" ref="drawerRef" class="drawer">
+    <Drawer :username="username" />
   </div>
   <div>
     <div class="chat-top">
       {{ store.msgs[username]?.nickname }}
-      <div v-if="store.msgs[username].type === 2 " style="float: right;margin-right: 20px;cursor:pointer;" @click.stop="drawer = true">
+      <div v-if="store.msgs[username].type === 2 " style="float: right;margin-right: 20px;cursor:pointer;" @click.stop="drawerVisible = true">
         <el-icon><MoreFilled /></el-icon>
       </div>
     </div>
 
     <div id="chat-message" class="chat-message">
       <div v-if="store.msgs[username].type === 1">
-        <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
+        <div v-for="msg in store.msgs[username].msgList" :key="msg.sequence">
           <template v-if="msg.from_username === store.msgs[username].username">
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
             <div class="chat-message-left">
               <img
                 alt=""
@@ -52,7 +33,11 @@
             </div>
           </template>
           <template v-else>
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
             <div class="chat-message-right">
+              <el-icon v-if="msg.wait" class="is-loading" style="margin-right: 5px;vertical-align: middle">
+                <Loading />
+              </el-icon>
               <div v-if="msg.msg_type === 2" class="chat-message-right__img">
                 <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
               </div>
@@ -74,11 +59,14 @@
       <div v-else-if="store.msgs[username].type === 2">
         <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
           <template v-if="msg.isSystemMsg">
-            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)"> {{ msg.text_msg?.text }}</div>
+            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)"><div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div> {{ msg.text_msg?.text }}</div>
           </template>
           <template v-else-if="msg.from_username === store.userInfo.username">
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
             <div class="chat-message-right">
-
+              <el-icon v-if="msg.wait" class="is-loading" style="margin-right: 5px;vertical-align: middle">
+                <Loading />
+              </el-icon>
               <div v-if="msg.msg_type === 2" class="chat-message-right__img">
                 <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
               </div>
@@ -97,22 +85,25 @@
 
           </template>
           <template v-else>
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
             <div class="chat-message-left">
+
               <img
                 alt=""
                 style="float:left;vertical-align: middle; cursor: pointer"
-                :src="store.groupMember[username][msg.from_username].avatar"
+                :src="store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].avatar : store.cacheUser[msg.from_username]?.avatar"
                 :width="32"
                 :height="32"
                 @click.stop="handleShowInfo($event, false, true, msg.from_username)"
               >
-              <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)">{{ store.groupMember[username][msg.from_username].nickname }}</div>
+              <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)">{{ store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].nickname : store.cacheUser[msg.from_username]?.nickname }} </div>
               <div v-if="msg.msg_type === 2" class="chat-message-left__img">
                 <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
               </div>
               <div v-else class="chat-message-left__box">
                 {{ msg.text_msg?.text }}
               </div>
+
             </div>
           </template>
         </div>
@@ -140,7 +131,8 @@
           <!--              {{ emoji.emoji }}-->
           <!--            </el-tooltip>-->
           <!--          </div>-->
-          <Picker :data="emojiIndex" :native="true" set="twitter" @select="showEmoji" />
+          <!--          <Picker :data="emojiIndex" :native="true" set="twitter" @select="showEmoji" />-->
+          <EmojiPicker :native="true" @select="onSelectEmoji" />
         </template>
         <template #reference>
           <img width="30" height="30" alt="" src="@/assets/img/smile.png">
@@ -195,10 +187,16 @@ import ApiPath from '@/common/ApiPath.js'
 import {userStore} from '@/store/userStore.js'
 import UserInfo from '@/components/UserInfo.vue'
 import _ from 'lodash'
-import {MoreFilled} from '@element-plus/icons-vue'
+import {CircleClose, Loading, MoreFilled} from '@element-plus/icons-vue'
 import data from 'emoji-mart-vue-fast/data/all.json'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src'
+import EmojiPicker from 'vue3-emoji-picker'
+import Drawer from '../components/Drawer.vue'
+import 'vue3-emoji-picker/css'
+import {nanoid} from 'nanoid'
+import moment from 'moment'
+
 
 const emojiIndex = new EmojiIndex(data)
 const buttonRef = ref()
@@ -217,6 +215,27 @@ const props = defineProps({
 watch(props, () => {
   message.value = store.messages[props.username] || ''
 })
+onMounted(() => {
+  window.addEventListener('paste',handlePaste)
+  window.addEventListener('click', closeDrawer)
+  waitForAllImagesToLoad().then(() => {
+    document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+  })
+})
+
+onUpdated(() => {
+  store.updateMessages(Object.assign(store.messages, {
+    [props.username]: message.value
+  }))
+
+  waitForAllImagesToLoad().then(() => {
+    document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
+  })
+})
+onUnmounted(() => {
+  window.removeEventListener('paste',handlePaste)
+  window.removeEventListener('click', closeDrawer)
+})
 const handlePaste = (e) => {
   let focusedElement = document.activeElement
   if(focusedElement?.tagName === 'TEXTAREA') {
@@ -227,6 +246,22 @@ const handlePaste = (e) => {
           const file = item.getAsFile()
           let reader = new FileReader()
           reader.onload = (event) => {
+            const client_sequence = nanoid()
+            store.msgs[props.username].lastUsername = store.userInfo.username
+            store.msgs[props.username].lastMsg = '[图片]'
+            store.msgs[props.username].msgList.push({
+              msg_type: 2,
+              from_type: 1,
+              to_type: 1,
+              to_username: '',
+              image_msg: {
+
+                image_url: event.target.result
+              },
+              from_username: store.userInfo.username,
+              wait: true,
+              client_sequence
+            })
             post(ApiPath.USER_UPLOAD_FILE, {
               file_name: file.name,
               file_data: event.target.result.replace(/^data:image\/\w+;base64,/, '')
@@ -240,7 +275,9 @@ const handlePaste = (e) => {
                     to_username: props.username,
                     image_msg: {
                       image_url: res.absolute_file_path
-                    }
+                    },
+                    client_sequence,
+                    formatTime: moment().format('HH:mm')
                   }
                 }).then(res => {
                   if (res.code === 0) {
@@ -262,13 +299,6 @@ const handlePaste = (e) => {
     }
   }
 }
-onMounted(() => {
-  window.addEventListener('paste',handlePaste)
-  window.addEventListener('click', closeDrawer)
-  waitForAllImagesToLoad().then(() => {
-    document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
-  })
-})
 const waitForAllImagesToLoad = () => {
   return new Promise((resolve) => {
     const images = Array.from(document.getElementsByTagName('img'))
@@ -291,27 +321,13 @@ const waitForAllImagesToLoad = () => {
     })
   })
 }
-
-onUpdated(() => {
-  store.updateMessages(Object.assign(store.messages, {
-    [props.username]: message.value
-  }))
-
-  waitForAllImagesToLoad().then(() => {
-    document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
-  })
-})
-onUnmounted(() => {
-  window.removeEventListener('paste',handlePaste)
-  window.removeEventListener('click', closeDrawer)
-})
-
-const drawer = ref(false)
+const drawerVisible = ref(false)
+const drawerRef = ref()
 const closeDrawer = (e) => {
-  if(e.target.id === 'drawer') {
+  if (drawerRef.value && drawerRef.value.contains(e.target)) {
     return
   }
-  drawer.value = false
+  drawerVisible.value = false
 }
 
 
@@ -331,6 +347,24 @@ const sendMessage = _.debounce(() => {
     }, 2000)
     return
   }
+  const msg = message.value
+  const client_sequence = nanoid()
+  store.msgs[props.username].lastUsername = store.userInfo.username
+  store.msgs[props.username].lastMsg = message.value
+  store.msgs[props.username].msgList.push({
+    msg_type: 1,
+    from_type: 1,
+    to_type: 1,
+    to_username: '',
+    text_msg: {
+      text: message.value
+    },
+    from_username: store.userInfo.username,
+    wait: true,
+    client_sequence,
+    formatTime: moment().format('HH:mm')
+  })
+  message.value = ''
   post(ApiPath.USER_SEND_MSG, {
     msg: {
       msg_type: 1,
@@ -338,15 +372,16 @@ const sendMessage = _.debounce(() => {
       to_type: store.msgs[props.username].type,
       to_username: props.username,
       text_msg: {
-        text: message.value
+        text: msg
       },
       image_msg: {
         image_url: ''
-      }
+      },
+      client_sequence,
+      formatTime: moment().format('HH:mm')
     }
   }).then(res => {
     if (res.code === 0) {
-      message.value = ''
       globalFunc.getUserMsg()
     } else {
       proxy.$message({type: 'error', message: res.msg})
@@ -355,10 +390,6 @@ const sendMessage = _.debounce(() => {
 }, 300)
 
 const userInfoRef = ref()
-const handleShowGroupUserInfo = (e, left, isGroup, username) => {
-  store.updateLookUserInfo(store.groupMember[props.username][username])
-  userInfoRef.value.handleShowInfo(e, left)
-}
 const handleShowInfo = (e, left, isGroup, username) => {
   document.querySelector('html').click()
   if (left) {
@@ -492,5 +523,9 @@ const handleShowInfo = (e, left, isGroup, username) => {
   width: 250px;
   background-color: rgb(245, 245, 245);
   border-left: 1px solid rgb(236 ,236 ,236);
+  :deep .el-drawer__header{
+    margin: 0;
+    padding: 0;
+  }
 }
 </style>

@@ -11,8 +11,16 @@
         </el-badge>
       </div>
       <div style="display: inline-block; margin-left: 3px;">
-        <div style="line-height: 20px;margin-top: 10px;">{{ item.nickname }}</div>
-        <div style="line-height: 20px;margin-top: 5px;color: rgb(165, 165, 165); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;width: 150px;font-size: 12px">
+        <div style="line-height: 20px;width: 120px; margin-top: 10px; float: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; ">{{ item.nickname }}</div>
+        <div v-if="item.lastTime" style="float: right">
+          <div style="color: rgb(153, 153, 153); font-size: 12px; text-align: right;margin-top: 10px; margin-right: 5px">
+            {{ formatTime(item.lastTime) }}
+          </div>
+        </div>
+        <div style="line-height: 20px;padding-top: 5px;color: rgb(165, 165, 165); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;width: 150px;font-size: 12px">
+          <!--          <el-icon v-if="msg.wait" class="is-loading" style="margin-right: 5px;vertical-align: middle">-->
+          <!--            <Loading />-->
+          <!--          </el-icon>-->
           <template v-if="key !== store.operateUsername && store.messages[key]">
             <span style="color: rgb(221, 43, 43)">[草稿]：</span>{{ store.messages[key] }}
           </template>
@@ -30,12 +38,13 @@
 </template>
 <script setup lang="js">
 import {getCurrentInstance, inject, onBeforeMount, onMounted, reactive, ref, watch, watchEffect} from 'vue'
-import {Plus} from '@element-plus/icons-vue'
+import {Loading, Plus} from '@element-plus/icons-vue'
 import {useRoute, useRouter} from 'vue-router'
 import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
 import {userStore} from '@/store/userStore.js'
-import SelectFriend from '@/views/console/chats/SelectFriend.vue'
+import SelectFriend from '@/views/console/chats/components/SelectFriend.vue'
+import moment from 'moment'
 
 const { proxy } = getCurrentInstance()
 const router = useRouter()
@@ -47,7 +56,6 @@ const setActive = (username) => {
   store.updateBadges(Object.assign(store.badges, {
     [username]: false
   }))
-
   store.updateOperateUsername(username)
 }
 const showSelectFriend = ref(false)
@@ -61,6 +69,12 @@ const scroll = () => {
   setTimeout(() => {
     document.querySelector('.friend__item--active')?.scrollIntoView()
   }, 300)
+}
+const formatTime = (timestamp) => {
+  if(new Date(Number(timestamp)).setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0)) {
+    return moment(Number(timestamp)).format('HH:mm')
+  }
+  return moment(Number(timestamp)).format('YY/MM/DD')
 
 }
 </script>
@@ -73,7 +87,7 @@ const scroll = () => {
   font-size: 14px;
   position: relative;
   &--active{
-    background-color: #babebe;
+    background-color: rgb(202, 200, 198);
   }
 }
 </style>
