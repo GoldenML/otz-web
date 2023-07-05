@@ -5,8 +5,17 @@
   <div>
     <div class="chat-top">
       {{ store.msgs[username]?.nickname }}
-      <div v-if="store.msgs[username].type === 2 " style="float: right;margin-right: 20px;cursor:pointer;" @click.stop="drawerVisible = true">
-        <el-icon><MoreFilled /></el-icon>
+      <span v-if="store.msgs[username].type === 2 && store.groupMember[username]">
+        ({{ Object.keys(store.groupMember[username]).length }})
+      </span>
+      <div
+        v-if="store.msgs[username].type === 2 "
+        style="float: right;margin-right: 20px;cursor:pointer;"
+        @click.stop="drawerVisible = true"
+      >
+        <el-icon>
+          <MoreFilled />
+        </el-icon>
       </div>
     </div>
 
@@ -59,7 +68,10 @@
       <div v-else-if="store.msgs[username].type === 2">
         <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
           <template v-if="msg.isSystemMsg">
-            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)"><div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div> {{ msg.text_msg?.text }}</div>
+            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)">
+              <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
+              {{ msg.text_msg?.text }}
+            </div>
           </template>
           <template v-else-if="msg.from_username === store.userInfo.username">
             <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
@@ -96,7 +108,10 @@
                 :height="32"
                 @click.stop="handleShowInfo($event, false, true, msg.from_username)"
               >
-              <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)">{{ store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].nickname : store.cacheUser[msg.from_username]?.nickname }} </div>
+              <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)">{{
+                store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].nickname : store.cacheUser[msg.from_username]?.nickname
+              }}
+              </div>
               <div v-if="msg.msg_type === 2" class="chat-message-left__img">
                 <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
               </div>
@@ -152,7 +167,9 @@
         @keydown.enter.exact.prevent="sendMessage"
       />
     </div>
-    <div style="text-align: right; padding-right: 20px; margin-top:  13px; position: absolute; bottom: 15px; right: 20px">
+    <div
+      style="text-align: right; padding-right: 20px; margin-top:  13px; position: absolute; bottom: 15px; right: 20px"
+    >
       <el-button ref="buttonRef" class="btn-send" @click="sendMessage">发送</el-button>
       <el-popover
         ref="popoverRef"
@@ -190,7 +207,7 @@ import _ from 'lodash'
 import {CircleClose, Loading, MoreFilled} from '@element-plus/icons-vue'
 import data from 'emoji-mart-vue-fast/data/all.json'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
-import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src'
+import {Picker, EmojiIndex} from 'emoji-mart-vue-fast/src'
 import EmojiPicker from 'vue3-emoji-picker'
 import Drawer from '../components/Drawer.vue'
 import 'vue3-emoji-picker/css'
@@ -216,7 +233,7 @@ watch(props, () => {
   message.value = store.messages[props.username] || ''
 })
 onMounted(() => {
-  window.addEventListener('paste',handlePaste)
+  window.addEventListener('paste', handlePaste)
   window.addEventListener('click', closeDrawer)
   waitForAllImagesToLoad().then(() => {
     document.getElementById('chat-message').scrollTop = document.getElementById('chat-message').scrollHeight
@@ -233,13 +250,13 @@ onUpdated(() => {
   })
 })
 onUnmounted(() => {
-  window.removeEventListener('paste',handlePaste)
+  window.removeEventListener('paste', handlePaste)
   window.removeEventListener('click', closeDrawer)
 })
 const handlePaste = (e) => {
   let focusedElement = document.activeElement
-  if(focusedElement?.tagName === 'TEXTAREA') {
-    if(e.clipboardData.items.length > 0) {
+  if (focusedElement?.tagName === 'TEXTAREA') {
+    if (e.clipboardData.items.length > 0) {
       for (let i = 0; i < e.clipboardData.items.length; i++) {
         const item = e.clipboardData.items[i]
         if (item.kind === 'file' && item.type.indexOf('image') !== -1) {
@@ -331,7 +348,7 @@ const closeDrawer = (e) => {
 }
 
 
-const { proxy } = getCurrentInstance()
+const {proxy} = getCurrentInstance()
 const message = ref('')
 const emojis = reactive(emojiList)
 const addEmoji = (emoji) => {
@@ -405,33 +422,37 @@ const handleShowInfo = (e, left, isGroup, username) => {
 
 </script>
 <style lang="scss" scoped>
-.chat-top{
+.chat-top {
   padding-left: 20px;
   line-height: 60px;
   height: 60px;
-  background-color: rgb(245,245,245);
+  background-color: rgb(245, 245, 245);
 }
-.chat-message{
+
+.chat-message {
   height: calc(800px - 300px);
   max-height: calc(800px - 300px);
   overflow: auto;
-  background-color: rgb(245,245,245);
-  &-left{
+  background-color: rgb(245, 245, 245);
+
+  &-left {
     margin-top: 10px;
     margin-left: 30px;
     padding-bottom: 10px;
-    &__img{
+
+    &__img {
       text-align: left;
       display: inline-block;
       line-height: 32px;
       min-height: 32px;
       margin-left: 5px;
-      padding:0 10px;
-      border-radius:5px;
+      padding: 0 10px;
+      border-radius: 5px;
       font-size: 14px;
       white-space: pre-wrap;
     }
-    &__box{
+
+    &__box {
       max-width: 500px;
       text-align: left;
       display: inline-block;
@@ -439,29 +460,32 @@ const handleShowInfo = (e, left, isGroup, username) => {
       min-height: 32px;
       background-color: rgb(255, 255, 255);
       margin-left: 5px;
-      padding:0 10px;
-      border-radius:5px;
+      padding: 0 10px;
+      border-radius: 5px;
       font-size: 14px;
       white-space: pre-wrap;
     }
   }
-  &-right{
+
+  &-right {
     text-align: right;
     margin-top: 10px;
     margin-right: 30px;
     padding-bottom: 10px;
-    &__img{
+
+    &__img {
       text-align: left;
       display: inline-block;
       line-height: 32px;
       min-height: 32px;
       margin-right: 5px;
-      padding:0 10px;
-      border-radius:5px;
+      padding: 0 10px;
+      border-radius: 5px;
       font-size: 14px;
       white-space: pre-wrap;
     }
-    &__box{
+
+    &__box {
       max-width: 500px;
       text-align: left;
       display: inline-block;
@@ -469,35 +493,40 @@ const handleShowInfo = (e, left, isGroup, username) => {
       min-height: 32px;
       margin-right: 5px;
       background-color: rgb(149, 236, 105);
-      padding:0 10px;
-      border-radius:5px;
+      padding: 0 10px;
+      border-radius: 5px;
       font-size: 14px;
       white-space: pre-wrap;
     }
   }
 }
-.chat-tools{
+
+.chat-tools {
   display: flex;
   align-items: center;
   line-height: 40px;
   height: 40px;
   border-top: 1px solid #ded7d7;
   padding: 0 15px;
-  img{
+
+  img {
     cursor: pointer;
   }
 }
-.chat-input{
+
+.chat-input {
   padding: 0 20px;
   min-height: 100px;
   background-color: rgb(245, 245, 245);
 }
-.emoji{
+
+.emoji {
   cursor: pointer;
   margin: 4px 3px;
   display: inline-block;
   font-size: 20px;
 }
+
 :deep(.el-textarea__inner) {
   padding: 0;
   box-shadow: 0 0 0 0;
@@ -505,14 +534,16 @@ const handleShowInfo = (e, left, isGroup, username) => {
   max-height: 140px;
   background-color: rgb(245, 245, 245);
 }
+
 :deep(.el-textarea__inner:hover) {
   box-shadow: 0 0 0 0;
 }
+
 :deep(.el-textarea__inner:focus) {
   box-shadow: 0 0 0 0;
 }
 
-.drawer{
+.drawer {
   // .el-drawer__body{
   //  background-color: rgb(245, 245, 245);
   //}
@@ -522,8 +553,9 @@ const handleShowInfo = (e, left, isGroup, username) => {
   height: 100%;
   width: 250px;
   background-color: rgb(245, 245, 245);
-  border-left: 1px solid rgb(236 ,236 ,236);
-  :deep .el-drawer__header{
+  border-left: 1px solid rgb(236, 236, 236);
+
+  :deep .el-drawer__header {
     margin: 0;
     padding: 0;
   }

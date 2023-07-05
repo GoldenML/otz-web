@@ -18,11 +18,12 @@ import {inject, onMounted, onUnmounted, provide, ref} from 'vue'
 import 'animate.css'
 import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
-import { userStore } from '@/store/userStore.js'
+import {userStore} from '@/store/userStore.js'
 import _ from 'lodash'
 import {useRoute} from 'vue-router'
 import connectSocke from '@/utils/connectSocket.js'
 import moment from 'moment'
+
 const show = ref(true)
 const store = userStore()
 
@@ -76,7 +77,7 @@ const getAllGroupMember = (groups) => {
   const groupMember = {}
   Promise.all(groups.map(e => {
     return post(ApiPath.USER_GROUP_GET_MEMBERS, {
-      group_id:  e.group_id
+      group_id: e.group_id
     }).then(res => {
       groupMember[e.group_id] = {}
       res.members.forEach(v => [
@@ -95,7 +96,7 @@ const getFriendInfos = async () => {
 }
 const getAddHistory = async () => {
   const res = await post(ApiPath.USER_ADD_HISTORY, {})
-  if(res.code === 0) {
+  if (res.code === 0) {
     store.updateAddHistory(res.add_friend_histories)
   }
 }
@@ -105,7 +106,8 @@ const getUserMsg = async () => {
   const res = await post(ApiPath.USER_GET_MSGS, {
     sequence: store.sequence
   })
-  if(res.code === 0) {
+  // 是否成功
+  if (res.code === 0) {
     const newMessage = res.msgs.map(e => {
       if (e.from_type === 1 && e.to_type === 1) {
         if (userInfo.username === e.from_username) {
@@ -117,17 +119,28 @@ const getUserMsg = async () => {
     })
     const badges = {}
     Object.keys(store.msgs).forEach(v => {
-      if(newMessage.includes(v) && store.operateUsername !== v) {
+      if (newMessage.includes(v) && store.operateUsername !== v) {
         badges[v] = true
       }
     })
     Object.assign(store.badges, badges)
-    if(res.msgs?.length > 0) {
+    if (res.msgs?.length > 0) {
       store.updateSequence(Number(res.msgs[res.msgs.length - 1].sequence))
       const obj = _.cloneDeep(store.msgs) || {}
       res.msgs.forEach(e => {
-        const {from_type, to_type, from_username,to_username, msg_type, text_msg, client_sequence, sequence, group_id, timestamp} = e
-        if(new Date(Number(timestamp)).setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0)) {
+        const {
+          from_type,
+          to_type,
+          from_username,
+          to_username,
+          msg_type,
+          text_msg,
+          client_sequence,
+          sequence,
+          group_id,
+          timestamp
+        } = e
+        if (new Date(Number(timestamp)).setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0)) {
           e.formatTime = moment(new Date(Number(timestamp))).format('HH:mm')
         } else {
           e.formatTime = moment(new Date(Number(timestamp))).format('YYYY-MM-DD HH:mm')
@@ -137,7 +150,7 @@ const getUserMsg = async () => {
           const idx = friendInfos.findIndex(user => user.username === friendUsername)
           if (idx > -1) {
             const friend = friendInfos[idx]
-            if(!obj[friendInfos[idx].username]) {
+            if (!obj[friendInfos[idx].username]) {
               obj[friend.username] = {
                 type: 1,
                 nickname: friend.nickname,
@@ -151,26 +164,26 @@ const getUserMsg = async () => {
               obj[friend.username].lastTime = timestamp
               obj[friend.username].lastMsg = msg_type === 1 ? text_msg.text : msg_type === 2 ? '[图片]' : ''
               const i = obj[friend.username].msgList.findIndex(v => String(v.client_sequence) === String(client_sequence))
-              if(client_sequence && i > -1) {
+              if (client_sequence && i > -1) {
                 obj[friend.username].msgList[i].wait = false
                 return
               }
-              if(obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(sequence)) === -1) {
+              if (obj[friend.username].msgList.findIndex(v => String(v.sequence) === String(sequence)) === -1) {
                 obj[friend.username].msgList.push(e)
               }
             }
           }
-        } else if((from_type === 1 || from_type === 4) && to_type === 2) {
+        } else if ((from_type === 1 || from_type === 4) && to_type === 2) {
           const idx = store.groupInfos.findIndex(v => v.group_id === to_username)
           if (idx > -1) {
             const groupInfo = store.groupInfos[idx]
-            if(!obj[to_username]) {
+            if (!obj[to_username]) {
               obj[to_username] = {
                 type: 2,
                 nickname: groupInfo.group_name,
                 avatar: groupInfo.group_avatar,
                 lastUsername: from_username,
-                lastMsg:msg_type === 1 ? text_msg.text : msg_type === 2 ? '[图片]' : '',
+                lastMsg: msg_type === 1 ? text_msg.text : msg_type === 2 ? '[图片]' : '',
                 username: group_id,
                 msgList: from_type === 4 ? [
                   {
@@ -184,12 +197,12 @@ const getUserMsg = async () => {
               obj[to_username].lastUsername = from_username
               obj[to_username].lastMsg = msg_type === 1 ? text_msg.text : msg_type === 2 ? '[图片]' : ''
               const i = obj[to_username].msgList.findIndex(v => String(v.client_sequence) === String(client_sequence))
-              if(client_sequence && i > -1) {
+              if (client_sequence && i > -1) {
                 obj[to_username].msgList[i].formatTime = e.formatTime
                 obj[to_username].msgList[i].wait = false
                 return
               }
-              if(obj[to_username].msgList.findIndex(v => String(v.sequence) === String(sequence)) === -1) {
+              if (obj[to_username].msgList.findIndex(v => String(v.sequence) === String(sequence)) === -1) {
                 obj[to_username].msgList.push(from_type === 4 ? {
                   ...e, isSystemMsg: true,
                 } : e)
@@ -212,9 +225,9 @@ const getUserMsg = async () => {
         newObj[Object.keys(e)[0]] = e[Object.keys(e)[0]]
       })
       Object.keys(newObj).forEach(v => {
-        if(newObj[v].type === 2) {
+        if (newObj[v].type === 2) {
           newObj[v].msgList.filter(e => e.from_type !== 4).forEach(e => {
-            if(!store.groupMember[e.to_username]?.[e.from_username] && !store.cacheUser[e.from_username]) {
+            if (!store.groupMember[e.to_username]?.[e.from_username] && !store.cacheUser[e.from_username]) {
               post(ApiPath.USER_GET_INFO, {
                 username: e.from_username
               }).then(res => {
@@ -228,7 +241,7 @@ const getUserMsg = async () => {
       })
       console.log(newArr)
       store.updateMsgs(newObj)
-      if(res.msgs.length > 100) {
+      if (res.msgs.length > 100) {
         getUserMsg()
       }
 
@@ -242,20 +255,22 @@ const connectWs = () => {
   let timer = null
   let ws
   let wsUrl = 'wss://im.sotz.cc/otz/im/web_proxy/sync_notify'
+
   function createWebSocket() {
     try {
       ws = new WebSocket(wsUrl)
       init()
-    } catch(e) {
+    } catch (e) {
       reconnect(wsUrl)
     }
   }
+
   function init() {
     ws.onopen = function () {
       //心跳检测重置
       heartCheck.start()
     }
-    ws.onmessage = ({ data }) => {
+    ws.onmessage = ({data}) => {
       if (data === 'otz_pong') {
         heartCheck.start()
         return
@@ -263,13 +278,13 @@ const connectWs = () => {
 
       switch (JSON.parse(data).notify_type) {
       case 1:
-        if(route.matched[1].path === '/console/chats') {
+        if (route.matched[1].path === '/console/chats') {
           store.updateContactBadge(true)
         }
         getAddHistory()
         break
       case 2:
-        if(route.matched[1].path === '/console/contacts') {
+        if (route.matched[1].path === '/console/contacts') {
           store.updateChatBadge(true)
         }
         getUserMsg()
@@ -282,14 +297,15 @@ const connectWs = () => {
       console.log('ws已关闭')
       reconnect(wsUrl)
     }
-    ws.onerror = function() {
+    ws.onerror = function () {
       console.log('ws发生异常')
       reconnect(wsUrl)
     }
 
   }
+
   function reconnect(url) {
-    if(lockReconnect) {
+    if (lockReconnect) {
       return
     }
     lockReconnect = true
@@ -300,19 +316,20 @@ const connectWs = () => {
       lockReconnect = false
     }, 4000)
   }
+
   let heartCheck = {
     timeout: 10000,
     timeoutObj: null,
     serverTimeoutObj: null,
-    start: function() {
+    start: function () {
       let self = this
       console.log('ws ===>', ws)
       this.timeoutObj && clearTimeout(this.timeoutObj)
       this.serverTimeoutObj && clearTimeout(this.serverTimeoutObj)
-      this.timeoutObj = setTimeout(function() {
+      this.timeoutObj = setTimeout(function () {
         //这里发送一个心跳，后端收到后，返回一个心跳消息，
         ws.send('otz_ping')
-        self.serverTimeoutObj = setTimeout(function() {
+        self.serverTimeoutObj = setTimeout(function () {
           ws.close()
         }, self.timeout)
       }, this.timeout)
@@ -323,14 +340,15 @@ const connectWs = () => {
 }
 </script>
 <style lang="scss" scoped>
-.container{
+.container {
   position: absolute;
   top: 50%;
   left: 50%;
   width: 1000px;
   height: 800px;
-  transform: translate(-50% ,-50%);
+  transform: translate(-50%, -50%);
 }
+
 .layout-container {
   display: flex;
   width: 1000px;
@@ -344,6 +362,7 @@ const connectWs = () => {
   display: flex;
   flex-direction: column;
 }
+
 .content {
   background-color: rgb(245, 245, 245);
   flex: 1;
