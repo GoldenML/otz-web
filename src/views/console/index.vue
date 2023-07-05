@@ -1,18 +1,18 @@
-<template >
-  <div class="container" >
-    <transition enter-active-class="animate__animated animate__bounceIn" >
-      <div v-if="show" class="layout-container" >
-        <div class="sidebar" >
+<template>
+  <div class="container">
+    <transition enter-active-class="animate__animated animate__bounceIn">
+      <div v-if="show" class="layout-container">
+        <div class="sidebar">
           <Menu />
-        </div >
-        <div class="content" >
+        </div>
+        <div class="content">
           <router-view />
-        </div >
-      </div >
-    </transition >
-  </div >
-</template >
-<script setup lang="js" >
+        </div>
+      </div>
+    </transition>
+  </div>
+</template>
+<script setup lang="js">
 import Menu from './Menu.vue'
 import {inject, onMounted, onUnmounted, provide, ref} from 'vue'
 import 'animate.css'
@@ -277,20 +277,20 @@ const connectWs = () => {
       }
 
       switch (JSON.parse(data).notify_type) {
-        case 1:
-          if (route.matched[1].path === '/console/chats') {
-            store.updateContactBadge(true)
-          }
-          getAddHistory()
-          break
-        case 2:
-          if (route.matched[1].path === '/console/contacts') {
-            store.updateChatBadge(true)
-          }
-          getUserMsg()
-          break
-        default:
-          break
+      case 1:
+        if (route.matched[1].path === '/console/chats') {
+          store.updateContactBadge(true)
+        }
+        getAddHistory()
+        break
+      case 2:
+        if (route.matched[1].path === '/console/contacts') {
+          store.updateChatBadge(true)
+        }
+        getUserMsg()
+        break
+      default:
+        break
       }
     }
     ws.onclose = function () {
@@ -338,8 +338,8 @@ const connectWs = () => {
   const IS_PROD = ['production', 'prod'].includes(process.env.NODE_ENV)
   IS_PROD && createWebSocket()
 }
-</script >
-<style lang="scss" scoped >
+</script>
+<style lang="scss" scoped>
 .container {
   position: absolute;
   top: 50%;
@@ -367,4 +367,4 @@ const connectWs = () => {
   background-color: rgb(245, 245, 245);
   flex: 1;
 }
-</style >
+</style>

@@ -1,135 +1,138 @@
-<template >
-  <div v-if="drawerVisible" id="drawer" ref="drawerRef" class="drawer" >
+<template>
+  <div v-if="drawerVisible" id="drawer" ref="drawerRef" class="drawer">
     <Drawer :username="username" />
-  </div >
-  <div >
-    <div class="chat-top" >
+  </div>
+  <div>
+    <div class="chat-top">
       {{ store.msgs[username]?.nickname }}
-      <span v-if="store.msgs[username].type === 2 && store.groupMember[username]" >
-    ({{ Object.keys(store.groupMember[username]).length }})
-  </span >
-      <div v-if="store.msgs[username].type === 2 " style="float: right;margin-right: 20px;cursor:pointer;"
-           @click.stop="drawerVisible = true" >
-        <el-icon >
+      <span v-if="store.msgs[username].type === 2 && store.groupMember[username]">
+        ({{ Object.keys(store.groupMember[username]).length }})
+      </span>
+      <div
+        v-if="store.msgs[username].type === 2 "
+        style="float: right;margin-right: 20px;cursor:pointer;"
+        @click.stop="drawerVisible = true"
+      >
+        <el-icon>
           <MoreFilled />
-        </el-icon >
-      </div >
-    </div >
+        </el-icon>
+      </div>
+    </div>
 
-    <div id="chat-message" class="chat-message" >
-      <div v-if="store.msgs[username].type === 1" >
-        <div v-for="msg in store.msgs[username].msgList" :key="msg.sequence" >
-          <template v-if="msg.from_username === store.msgs[username].username" >
-            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)" > {{ msg.formatTime }}</div >
-            <div class="chat-message-left" >
+    <div id="chat-message" class="chat-message">
+      <div v-if="store.msgs[username].type === 1">
+        <div v-for="msg in store.msgs[username].msgList" :key="msg.sequence">
+          <template v-if="msg.from_username === store.msgs[username].username">
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
+            <div class="chat-message-left">
               <img
-                  alt=""
-                  style="float:left;vertical-align: middle; cursor: pointer"
-                  :src="store.msgs[username].avatar"
-                  :width="32"
-                  :height="32"
-                  @click.stop="handleShowInfo($event, false)"
+                alt=""
+                style="float:left;vertical-align: middle; cursor: pointer"
+                :src="store.msgs[username].avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, false)"
               >
-              <div v-if="msg.msg_type === 2" class="chat-message-left__img" >
-                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="" >
-              </div >
-              <div v-else class="chat-message-left__box" >
+              <div v-if="msg.msg_type === 2" class="chat-message-left__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-left__box">
                 {{ msg.text_msg?.text }}
-              </div >
-            </div >
-          </template >
-          <template v-else >
-            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)" > {{ msg.formatTime }}</div >
-            <div class="chat-message-right" >
-              <el-icon v-if="msg.wait" class="is-loading" style="margin-right: 5px;vertical-align: middle" >
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
+            <div class="chat-message-right">
+              <el-icon v-if="msg.wait" class="is-loading" style="margin-right: 5px;vertical-align: middle">
                 <Loading />
-              </el-icon >
-              <div v-if="msg.msg_type === 2" class="chat-message-right__img" >
-                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="" >
-              </div >
-              <div v-else class="chat-message-right__box" >
+              </el-icon>
+              <div v-if="msg.msg_type === 2" class="chat-message-right__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-right__box">
                 {{ msg.text_msg?.text }}
-              </div >
+              </div>
               <img
-                  alt=""
-                  style="float: right; vertical-align: middle; cursor: pointer"
-                  :src="store.userInfo.avatar"
-                  :width="32"
-                  :height="32"
-                  @click.stop="handleShowInfo($event, true)"
+                alt=""
+                style="float: right; vertical-align: middle; cursor: pointer"
+                :src="store.userInfo.avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, true)"
               >
-            </div >
-          </template >
-        </div >
-      </div >
-      <div v-else-if="store.msgs[username].type === 2" >
-        <div v-for="msg in store.msgs[username].msgList" :key="msg.username" >
-          <template v-if="msg.isSystemMsg" >
-            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)" >
-              <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)" > {{ msg.formatTime }}</div >
+            </div>
+          </template>
+        </div>
+      </div>
+      <div v-else-if="store.msgs[username].type === 2">
+        <div v-for="msg in store.msgs[username].msgList" :key="msg.username">
+          <template v-if="msg.isSystemMsg">
+            <div style="text-align: center; font-size: 12px;color: rgb(198, 173, 173)">
+              <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
               {{ msg.text_msg?.text }}
-            </div >
-          </template >
-          <template v-else-if="msg.from_username === store.userInfo.username" >
-            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)" > {{ msg.formatTime }}</div >
-            <div class="chat-message-right" >
-              <el-icon v-if="msg.wait" class="is-loading" style="margin-right: 5px;vertical-align: middle" >
+            </div>
+          </template>
+          <template v-else-if="msg.from_username === store.userInfo.username">
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
+            <div class="chat-message-right">
+              <el-icon v-if="msg.wait" class="is-loading" style="margin-right: 5px;vertical-align: middle">
                 <Loading />
-              </el-icon >
-              <div v-if="msg.msg_type === 2" class="chat-message-right__img" >
-                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="" >
-              </div >
-              <div v-else class="chat-message-right__box" >
+              </el-icon>
+              <div v-if="msg.msg_type === 2" class="chat-message-right__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-right__box">
                 {{ msg.text_msg?.text }}
-              </div >
+              </div>
               <img
-                  alt=""
-                  style="float: right; vertical-align: middle; cursor: pointer"
-                  :src="store.userInfo.avatar"
-                  :width="32"
-                  :height="32"
-                  @click.stop="handleShowInfo($event, true, true)"
+                alt=""
+                style="float: right; vertical-align: middle; cursor: pointer"
+                :src="store.userInfo.avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, true, true)"
               >
-            </div >
+            </div>
 
-          </template >
-          <template v-else >
-            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)" > {{ msg.formatTime }}</div >
-            <div class="chat-message-left" >
+          </template>
+          <template v-else>
+            <div style="text-align: center; font-size: 12px;color: rgb(168,166,166)"> {{ msg.formatTime }}</div>
+            <div class="chat-message-left">
 
               <img
-                  alt=""
-                  style="float:left;vertical-align: middle; cursor: pointer"
-                  :src="store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].avatar : store.cacheUser[msg.from_username]?.avatar"
-                  :width="32"
-                  :height="32"
-                  @click.stop="handleShowInfo($event, false, true, msg.from_username)"
+                alt=""
+                style="float:left;vertical-align: middle; cursor: pointer"
+                :src="store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].avatar : store.cacheUser[msg.from_username]?.avatar"
+                :width="32"
+                :height="32"
+                @click.stop="handleShowInfo($event, false, true, msg.from_username)"
               >
-              <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)" >{{
-                  store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].nickname : store.cacheUser[msg.from_username]?.nickname
-                }}
-              </div >
-              <div v-if="msg.msg_type === 2" class="chat-message-left__img" >
-                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="" >
-              </div >
-              <div v-else class="chat-message-left__box" >
+              <div style="font-size: 12px; margin-left: 38px;position:relative; top: -8px;color: rgb(184, 184, 184)">{{
+                store.groupMember[username][msg.from_username] ? store.groupMember[username][msg.from_username].nickname : store.cacheUser[msg.from_username]?.nickname
+              }}
+              </div>
+              <div v-if="msg.msg_type === 2" class="chat-message-left__img">
+                <img v-viewer :width="300" :src="msg.image_msg.image_url" alt="">
+              </div>
+              <div v-else class="chat-message-left__box">
                 {{ msg.text_msg?.text }}
-              </div >
+              </div>
 
-            </div >
-          </template >
-        </div >
-      </div >
+            </div>
+          </template>
+        </div>
+      </div>
 
       <div class="message-bottom" />
-    </div >
-    <div class="chat-tools" >
+    </div>
+    <div class="chat-tools">
       <el-popover
-          placement="top"
-          :width="300"
-          trigger="click"
+        placement="top"
+        :width="300"
+        trigger="click"
       >
-        <template #default >
+        <template #default>
           <!--          <div style="color: #000000; font-size: 14px">-->
           <!--            全部表情-->
           <!--          </div>-->
@@ -145,44 +148,45 @@
           <!--          </div>-->
           <!--          <Picker :data="emojiIndex" :native="true" set="twitter" @select="showEmoji" />-->
           <EmojiPicker :native="true" @select="onSelectEmoji" />
-        </template >
-        <template #reference >
-          <img width="30" height="30" alt="" src="@/assets/img/smile.png" >
-        </template >
+        </template>
+        <template #reference>
+          <img width="30" height="30" alt="" src="@/assets/img/smile.png">
+        </template>
 
-      </el-popover >
+      </el-popover>
 
-    </div >
+    </div>
     <div class="chat-content" />
-    <div class="chat-input" >
+    <div class="chat-input">
       <el-input
-          id="edit"
-          v-model="message"
-          :autosize="{ minRows: 7, maxRows: 7 }"
-          resize="none"
-          type="textarea"
-          @keydown.enter.exact.prevent="sendMessage"
+        id="edit"
+        v-model="message"
+        :autosize="{ minRows: 7, maxRows: 7 }"
+        resize="none"
+        type="textarea"
+        @keydown.enter.exact.prevent="sendMessage"
       />
-    </div >
+    </div>
     <div
-        style="text-align: right; padding-right: 20px; margin-top:  13px; position: absolute; bottom: 15px; right: 20px" >
-      <el-button ref="buttonRef" class="btn-send" @click="sendMessage" >发送</el-button >
+      style="text-align: right; padding-right: 20px; margin-top:  13px; position: absolute; bottom: 15px; right: 20px"
+    >
+      <el-button ref="buttonRef" class="btn-send" @click="sendMessage">发送</el-button>
       <el-popover
-          ref="popoverRef"
-          :visible="visible"
-          :virtual-ref="buttonRef"
-          trigger="click"
-          virtual-triggering
-          :auto-close="2000"
-          placement="top-start"
+        ref="popoverRef"
+        :visible="visible"
+        :virtual-ref="buttonRef"
+        trigger="click"
+        virtual-triggering
+        :auto-close="2000"
+        placement="top-start"
       >
-        <span > 不能发送空白消息 </span >
-      </el-popover >
-    </div >
-  </div >
+        <span> 不能发送空白消息 </span>
+      </el-popover>
+    </div>
+  </div>
   <UserInfo ref="userInfoRef" />
-</template >
-<script setup lang="js" >
+</template>
+<script setup lang="js">
 import {
   defineAsyncComponent,
   onMounted,
@@ -416,8 +420,8 @@ const handleShowInfo = (e, left, isGroup, username) => {
   userInfoRef.value.handleShowInfo(e, left)
 }
 
-</script >
-<style lang="scss" scoped >
+</script>
+<style lang="scss" scoped>
 .chat-top {
   padding-left: 20px;
   line-height: 60px;
@@ -556,4 +560,4 @@ const handleShowInfo = (e, left, isGroup, username) => {
     padding: 0;
   }
 }
-</style >
+</style>
