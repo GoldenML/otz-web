@@ -28,7 +28,7 @@
         <el-divider />
         <div style="text-align: center">
           <el-button v-if="store.friendInfos.findIndex(e => e.username === store.lookUserInfo.username) > -1" class="btn-conditional" @click="sendMessage">发消息</el-button>
-          <el-button v-else class="btn-conditional" @click="addUser">添加到通讯录</el-button>
+          <el-button v-else class="btn-conditional" @click.stop="addUser">添加到通讯录</el-button>
         </div>
       </template>
     </div>
@@ -95,7 +95,8 @@ const sendMessage = () => {
 const addFriendVisible = ref(false)
 const addUser = () => {
   addFriendVisible.value = true
-  document.querySelector('html').click()
+  showInfo.value = false
+  // document.querySelector('html').click()
 }
 
 </script>

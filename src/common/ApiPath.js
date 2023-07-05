@@ -24,7 +24,8 @@ const otz = {
   USER_UPLOAD_FILE: getApi('upload_file'),
   USER_UPDATE: getApi('update_user_info'),
   GROUP_ADD_USER: getApi('add_group_member'),
-  GROUP_REMOVE_USER: getApi('remove_group_member')
+  GROUP_REMOVE_USER: getApi('remove_group_member'),
+  GROUP_UPDATE_INFO: getApi('update_group_info')
 }
 
 export default otz

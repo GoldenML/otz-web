@@ -41,7 +41,34 @@
     </div>
     <div style="padding: 10px">
       <span style="font-size: 14px">群名称：</span>
-      <el-input v-model="groupName" />
+      <div v-if="editName !== 'groupName'" style="font-size: 14px; color: rgb(127, 127, 127)">{{ groupName }} <el-icon style="vertical-align: middle;cursor:pointer;" @click.stop="handleEdit('groupName')"><Edit /></el-icon></div>
+      <el-input v-else ref="groupNameRef" v-model="groupName" @blur="handleSave" @keydown.enter="handleSave" />
+    </div>
+    <div style="padding: 10px">
+      <span style="font-size: 14px">群公告：</span>
+      <div v-if="editName !== 'groupAnnouncement'" style="font-size: 14px; color: rgb(127, 127, 127)">{{ groupAnnouncement }} <el-icon style="vertical-align: middle;cursor:pointer;" @click.stop="handleEdit('groupAnnouncement')"><Edit /></el-icon></div>
+      <el-input
+        v-else
+        ref="groupAnnouncementRef"
+        v-model="groupAnnouncement"
+        type="textarea"
+        autosize
+        @blur="handleSave"
+        @keydown.enter="handleSave"
+      />
+    </div>
+    <div style="padding: 10px">
+      <span style="font-size: 14px">群简介：</span>
+      <div v-if="editName !== 'groupIntro'" style="font-size: 14px; color: rgb(127, 127, 127)">{{ groupIntro }} <el-icon style="vertical-align: middle;cursor:pointer;" @click.stop="handleEdit('groupIntro')"><Edit /></el-icon></div>
+      <el-input
+        v-else
+        ref="groupIntroRef"
+        v-model="groupIntro"
+        type="textarea"
+        autosize
+        @blur="handleSave"
+        @keydown.enter="handleSave"
+      />
     </div>
   </div>
   <UserInfo ref="userInfoRef" />
@@ -49,15 +76,16 @@
   <GroupRemoveFriend v-if="groupRemoveFriendVisible" @before-close="groupRemoveFriendVisible = false" />
 </template>
 <script setup lang="js">
-import {computed, onMounted, reactive, ref, toRefs} from 'vue'
+import {computed, getCurrentInstance, inject, onMounted, reactive, ref, toRefs, watch} from 'vue'
 import {userStore} from '@/store/userStore.js'
 import UserInfo from '@/components/UserInfo.vue'
 import GroupAddFriend from '@/views/console/chats/components/GroupAddFriend.vue'
 import GroupRemoveFriend from '@/views/console/chats/components/GroupRemoveFriend.vue'
 import {post} from '@/utils/request.js'
 import ApiPath from '@/common/ApiPath.js'
-import {Minus} from '@element-plus/icons-vue'
+import {Edit, Minus} from '@element-plus/icons-vue'
 
+const {proxy} = getCurrentInstance()
 const groupAddFriendVisible = ref(false)
 const groupRemoveFriendVisible = ref(false)
 const removeShow = computed(() => {
@@ -72,27 +100,89 @@ const store = userStore()
 const props = defineProps({
   username: String
 })
+const groupNameRef = ref()
+const groupAnnouncementRef = ref()
+const groupIntroRef = ref()
 
+const editName = ref('')
 const groupForm = reactive({
-  groupName: ''
+  groupName: '',
+  groupIntro: '',
+  groupAnnouncement: ''
 })
-const {groupName} = toRefs(groupForm)
+const initGroupInfo = ref(null)
+const { groupName, groupIntro, groupAnnouncement } = toRefs(groupForm)
+watch(store.groupInfos, (list) => {
+  const idx = list.findIndex(e => e.group_id === store.operateUsername)
+  if (idx > -1) {
+    initGroupInfo.value = list[idx]
+    const groupInfo = list[idx]
+    groupName.value = groupInfo.group_name
+    groupIntro.value = groupInfo.groupIntro
+    groupAnnouncement.value = groupInfo.group_notice
+  }
+}, {deep: true, immediate: true})
 onMounted(() => {
+  searchGroupInfo()
+})
+const searchGroupInfo = () => {
   post(ApiPath.USER_GROUP_GET_INFO, {
     group_id: props.username
   }).then(res => {
     if(res.code === 0) {
-      groupName.value = res.group_info.group_name
+      const idx = store.groupInfos.findIndex(e => e.group_id === store.operateUsername)
+      if (idx > -1) {
+        store.groupInfos.splice(idx, 1, res.group_info)
+      }
     }
   })
-})
-
+}
 const userInfoRef = ref()
 const handleShowGroupUserInfo = (e, left, isGroup, username) => {
   store.updateLookUserInfo(store.groupMember[props.username][username])
   userInfoRef.value.handleShowInfo(e, left)
 }
 
+const globalFunc = inject('globalFunc')
+const handleSave = () => {
+  if (!editName.value) {
+    return
+  }
+  editName.value = ''
+  post(ApiPath.GROUP_UPDATE_INFO, {
+    group_info: {
+      group_id: store.operateUsername,
+      group_name: groupName.value,
+      group_notice: groupAnnouncement.value,
+      group_intro: groupIntro.value,
+      talk_status: 1
+    }
+  }).then(res => {
+    if(res.code === 0) {
+      searchGroupInfo()
+      store.msgs[store.operateUsername].nickname = groupName.value
+    } else {
+      groupName.value = initGroupInfo.value.group_name
+      groupIntro.value = initGroupInfo.value.groupIntro
+      groupAnnouncement.value = initGroupInfo.value.group_notice
+    }
+  })
+}
+const handleEdit = (name) => {
+  editName.value = name
+  proxy.$nextTick(() => {
+    switch (name) {
+    case 'groupName': groupNameRef.value.focus()
+      break
+    case 'groupAnnouncement': groupAnnouncementRef.value.focus()
+      break
+    case 'groupIntro': groupIntroRef.value.focus()
+      break
+    default:
+      break
+    }
+  })
+}
 
 </script>
 <style lang="scss" scoped>

@@ -55,14 +55,14 @@ onMounted(() => {
 })
 watch(checked, (newVal) => {
   selected.value = newVal.filter(e => !store.groupMember[store.operateUsername][e.username])
-})
+}, {deep: true})
 const emits = defineEmits(['before-close', 'scroll'])
 const handleCancel = () => {
   emits('before-close')
 }
 const handleRemove = (username) => {
-  const idx = selected.value.findIndex(v => v.username === username)
-  selected.value.splice(idx, 1)
+  const idx = checked.value.findIndex(v => v.username === username)
+  checked.value.splice(idx, 1)
 }
 const globalFunc = inject('globalFunc')
 const handleSubmit = async () => {

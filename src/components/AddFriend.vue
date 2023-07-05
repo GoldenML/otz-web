@@ -1,5 +1,5 @@
 <template>
-  <div class="otz-modal">
+  <div class="otz-modal" @click.stop>
     <div class="otz-modal__content">
       <div class="otz-modal__content-header">申请添加朋友</div>
       <div class="otz-modal__content-line" />
@@ -10,8 +10,8 @@
         <el-input v-model="remark" />
       </div>
       <div class="otz-modal__content-footer">
-        <el-button class="btn-modal-ok" @click="handleSubmit">确定</el-button>
-        <el-button class="btn-modal-cancel" @click="proxy.$emit('close')">取消</el-button>
+        <el-button class="btn-modal-ok" @click.stop="handleSubmit">确定</el-button>
+        <el-button class="btn-modal-cancel" @click.stop="proxy.$emit('close')">取消</el-button>
       </div>
     </div>
   </div>

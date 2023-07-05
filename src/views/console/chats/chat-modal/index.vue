@@ -4,7 +4,7 @@
   </div>
   <div>
     <div class="chat-top">
-      {{ store.msgs[username]?.nickname }}
+      {{ store.msgs[username]?.nickname }}<span v-if="store.msgs[username].type === 2">（{{ Object.keys(store.groupMember[store.operateUsername]).length }}）</span>
       <div v-if="store.msgs[username].type === 2 " style="float: right;margin-right: 20px;cursor:pointer;" @click.stop="drawerVisible = true">
         <el-icon><MoreFilled /></el-icon>
       </div>
@@ -517,7 +517,7 @@ const handleShowInfo = (e, left, isGroup, username) => {
   //  background-color: rgb(245, 245, 245);
   //}
   position: absolute;
-  right: 0;
+  right: -250px;
   z-index: 100;
   height: 100%;
   width: 250px;

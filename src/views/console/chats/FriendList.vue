@@ -11,7 +11,10 @@
         </el-badge>
       </div>
       <div style="display: inline-block; margin-left: 3px;">
-        <div style="line-height: 20px;width: 120px; margin-top: 10px; float: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; ">{{ item.nickname }}</div>
+        <div style="line-height: 20px;width: 120px; margin-top: 10px; float: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; ">
+          <!--          <template v-if="store.groupMember[item.to_username]"></template>-->
+          {{ item.nickname }}
+        </div>
         <div v-if="item.lastTime" style="float: right">
           <div style="color: rgb(153, 153, 153); font-size: 12px; text-align: right;margin-top: 10px; margin-right: 5px">
             {{ formatTime(item.lastTime) }}

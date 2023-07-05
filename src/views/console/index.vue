@@ -214,7 +214,7 @@ const getUserMsg = async () => {
       Object.keys(newObj).forEach(v => {
         if(newObj[v].type === 2) {
           newObj[v].msgList.filter(e => e.from_type !== 4).forEach(e => {
-            if(!store.groupMember[e.to_username]?.[e.from_username] && !store.cacheUser[e.from_username]) {
+            if(!store.groupMember[e.to_username]?.[e.from_username] && !store.cacheUser[e.from_username] && e.from_username) {
               post(ApiPath.USER_GET_INFO, {
                 username: e.from_username
               }).then(res => {
